@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🛡️ ByteGuard - Cybersecurity Laboratory
 
-## Getting Started
+ByteGuard is an interactive, educational cybersecurity platform designed to demonstrate how digital threats work and how to protect against them. It features a professional "Command & Control" dashboard and a suite of simulated hacking tools.
 
-First, run the development server:
+## 🚀 Features
+
+### 🖥️ Command & Control Dashboard
+A Hollywood-style hacker interface with:
+- **Global Threat Map**: Visualizing simulated cyber attacks in real-time.
+- **System Logs**: Live terminal feed of system events.
+- **Stats Panel**: Monitoring simulated network traffic and resources.
+
+### 🛠️ The Tools
+
+1.  **🖼️ Steganography Lab**
+    - **What it does**: Hides secret text messages inside image files using LSB (Least Significant Bit) encoding.
+    - **Why it matters**: Demonstrates how data can be exfiltrated or hidden in plain sight.
+
+2.  **🎣 Phishing Simulator**
+    - **What it does**: Analyzes URLs and email text for suspicious patterns, typosquatting, and urgency triggers.
+    - **Why it matters**: Helps users identify common social engineering tactics.
+
+3.  **💉 SQL Injection Playground**
+    - **What it does**: Simulates a vulnerable login form where you can use SQL injection techniques (like `' OR '1'='1`) to bypass authentication.
+    - **Why it matters**: Teaches the importance of input sanitization and secure coding.
+
+4.  **⌨️ Keylogger Detector**
+    - **What it does**: Captures your keystrokes in real-time and displays them in an "Attacker's Log".
+    - **Why it matters**: Visualizes how malware can steal passwords and sensitive data without you knowing.
+
+5.  **🔐 Encryption & Passwords**
+    - **What it does**: Generates cryptographically secure passwords and hashes.
+
+## 💻 Tech Stack
+- **Framework**: Next.js 15 (React 19)
+- **Styling**: Tailwind CSS + Custom CSS for "Neon Hacker" aesthetics
+- **Logic**: Pure Client-Side JavaScript (No backend database required for simulations)
+
+## 🏁 Getting Started
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) to enter the lab.
