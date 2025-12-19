@@ -19,40 +19,43 @@ export function Sidebar() {
         { name: 'IP INTELLIGENCE', path: '/herramientas/ip-intel', icon: '📡' },
         { name: 'STEGANOGRAPHY', path: '/herramientas/steganography', icon: '🖼️' },
         { name: 'LINK FORENSICS', path: '/herramientas/phishing', icon: '🔎' },
-        { name: 'PAYLOAD VAULT', path: '/herramientas/sqli', icon: '💉' },
-        { name: 'KEYLOGGER DET', path: '/herramientas/keylogger', icon: '⌨️' },
-        { name: 'PASSWORD AUDIT', path: '/herramientas/bruteforce-sim', icon: '🔑' },
+        { name: 'SQLI TESTER & FUZZER', path: '/herramientas/sqli', icon: '💉' },
+        { name: 'BROWSER AUDITOR', path: '/herramientas/browser-auditor', icon: '🕵️' },
+        { name: 'PASSWORD FORGE', path: '/herramientas/generador-passwords', icon: '🔑' },
+        { name: 'METADATA FORENSICS', path: '/herramientas/metadata', icon: '📸' },
+        { name: 'ENTROPY AUDITOR', path: '/herramientas/bruteforce-sim', icon: '⚡' },
+        { name: 'WEB HONEYPOT', path: '/herramientas/honeypot', icon: '🕸️' },
         { name: 'EXIT', path: '/', icon: '🚪' },
     ];
 
     return (
-        <div className="w-64 h-screen bg-black border-r border-[#00ff88]/20 flex flex-col p-4 font-mono sticky top-0 shrink-0">
-            <div className="mb-8 p-2 border border-[#00ff88] text-[#00ff88] text-center font-bold text-xl tracking-widest shadow-[0_0_10px_rgba(0,255,136,0.3)]">
-                BYTEGUARD_C2
+        <div className="w-64 h-screen bg-[#050505]/90 backdrop-blur-xl border-r border-[#00ff88]/20 flex flex-col p-4 font-mono sticky top-0 shrink-0 z-[100]">
+            <div className="mb-8 p-4 border-2 border-[#00ff88] text-[#00ff88] text-center font-black text-2xl tracking-[0.2em] shadow-[0_0_20px_rgba(0,255,136,0.3)] cyber-border-extreme">
+                BYTEGUARD
             </div>
 
-            <nav className="flex-1 space-y-2">
+            <nav className="flex-1 space-y-1 custom-scrollbar overflow-y-auto pr-2">
                 {menuItems.map((item) => {
                     const isActive = pathname === item.path;
                     return (
                         <Link
                             key={item.path}
                             href={item.path}
-                            className={`flex items-center space-x-3 p-3 text-sm transition-all duration-200 border-l-2 ${isActive
-                                ? 'border-[#00ff88] bg-[#00ff88]/10 text-[#00ff88]'
-                                : 'border-transparent text-gray-500 hover:text-[#00ff88] hover:bg-[#00ff88]/5'
+                            className={`flex items-center space-x-3 p-3 text-xs font-bold tracking-widest transition-all duration-300 rounded-lg group ${isActive
+                                ? 'bg-[#00ff88] text-black shadow-[0_0_15px_rgba(0,255,136,0.4)]'
+                                : 'text-gray-500 hover:text-[#00ff88] hover:bg-[#00ff88]/5 border border-transparent hover:border-[#00ff88]/20'
                                 }`}
                         >
-                            <span>{item.icon}</span>
+                            <span className={`text-lg transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-120'}`}>{item.icon}</span>
                             <span>{item.name}</span>
                         </Link>
                     );
                 })}
             </nav>
 
-            <div className="mt-auto text-[10px] text-gray-600 text-center">
-                SYSTEM STATUS: ONLINE<br />
-                v2.0.4-ALPHA
+            <div className="mt-6 pt-4 border-t border-[#00ff88]/10 text-[10px] text-[#00ff88]/40 font-bold tracking-[3px] text-center">
+                STATUS: SECURE<br />
+                V2.4.0-PRO
             </div>
         </div>
     );
@@ -79,27 +82,38 @@ export function ThreatMap() {
             });
         }
 
+        let gridCanvas = null;
+        const renderGrid = (w, h) => {
+            const gCanvas = document.createElement('canvas');
+            gCanvas.width = w;
+            gCanvas.height = h;
+            const gCtx = gCanvas.getContext('2d');
+            gCtx.strokeStyle = '#00ff88';
+            gCtx.lineWidth = 0.5;
+            gCtx.globalAlpha = 0.1;
+            const gridSize = 40;
+            for (let x = 0; x < w; x += gridSize) {
+                gCtx.beginPath();
+                gCtx.moveTo(x, 0);
+                gCtx.lineTo(x, h);
+                gCtx.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                gCtx.beginPath();
+                gCtx.moveTo(0, y);
+                gCtx.lineTo(w, y);
+                gCtx.stroke();
+            }
+            return gCanvas;
+        };
+
+        gridCanvas = renderGrid(width, height);
+
         const animate = () => {
             ctx.clearRect(0, 0, width, height);
 
-            // Draw Grid
-            ctx.strokeStyle = '#00ff88';
-            ctx.lineWidth = 0.5;
-            ctx.globalAlpha = 0.1;
-            const gridSize = 40;
-
-            for (let x = 0; x < width; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < height; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.stroke();
-            }
+            // Draw Pre-rendered Grid
+            if (gridCanvas) ctx.drawImage(gridCanvas, 0, 0);
 
             // Draw Dots (Threats)
             dots.forEach(dot => {
@@ -134,6 +148,7 @@ export function ThreatMap() {
         const handleResize = () => {
             width = canvas.width = canvas.offsetWidth;
             height = canvas.height = canvas.offsetHeight;
+            gridCanvas = renderGrid(width, height);
         };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
@@ -182,7 +197,7 @@ export function TerminalLog() {
     }, []);
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, [logs]);
 
     return (

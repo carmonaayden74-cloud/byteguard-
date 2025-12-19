@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { Sidebar } from "../../components/DashboardComponents";
+import { useAuth } from "../../context/AuthContext";
+import { useDefense } from "../../context/DefenseContext";
+import { saveScan } from "../../lib/history";
 
 export default function PasswordGenerator() {
+    const { user } = useAuth();
+    const { notify } = useDefense();
 
     const [length, setLength] = useState(16);
     const [options, setOptions] = useState({
@@ -11,24 +17,50 @@ export default function PasswordGenerator() {
         numbers: true,
         symbols: true,
     });
-    const [strength, setStrength] = useState(0);
+    // Generate initial password lazily to avoid setState in effect
+    const [password, setPassword] = useState(() => {
+        const charset = {
+            uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            lowercase: "abcdefghijklmnopqrstuvwxyz",
+            numbers: "0123456789",
+            symbols: "!@#$%^&*()_+~`|}{[]:;?><,./-=",
+        };
+        const array = new Uint32Array(16);
+        window.crypto.getRandomValues(array);
+        let generated = "";
+        const chars = charset.uppercase + charset.lowercase + charset.numbers + charset.symbols;
+        for (let i = 0; i < 16; i++) {
+            generated += chars[array[i] % chars.length];
+        }
+        return generated;
+    });
+
     const [copied, setCopied] = useState(false);
     const [history, setHistory] = useState([]);
 
-    const calculateStrength = useCallback((pass) => {
-        let score = 0;
-        if (!pass) return setStrength(0);
+    // Initial strength calculation based on lazy password
+    const [strength, setStrength] = useState(() => {
+        const pool = 26 + 26 + 10 + 32; // basic pool for initial pass
+        const entropy = Math.log2(Math.pow(pool, 16));
+        return {
+            score: Math.min(100, (entropy / 128) * 100),
+            label: "SECURE",
+            color: "#ffcc00",
+            entropy
+        };
+    });
 
-        if (pass.length > 8) score += 1;
-        if (pass.length > 12) score += 1;
-        if (/[A-Z]/.test(pass)) score += 1;
-        if (/[0-9]/.test(pass)) score += 1;
-        if (/[^A-Za-z0-9]/.test(pass)) score += 1;
-
-        setStrength(Math.min(score, 5));
+    const calculateEntropy = useCallback((pass) => {
+        if (!pass) return 0;
+        let pool = 0;
+        if (/[a-z]/.test(pass)) pool += 26;
+        if (/[A-Z]/.test(pass)) pool += 26;
+        if (/[0-9]/.test(pass)) pool += 10;
+        if (/[^a-zA-Z0-9]/.test(pass)) pool += 32;
+        return Math.log2(Math.pow(pool, pass.length));
     }, []);
 
-    const generatePass = (len, opts) => {
+    const generatePassword = useCallback(() => {
         const charset = {
             uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             lowercase: "abcdefghijklmnopqrstuvwxyz",
@@ -37,306 +69,206 @@ export default function PasswordGenerator() {
         };
 
         let validChars = "";
-        if (opts.uppercase) validChars += charset.uppercase;
-        if (opts.lowercase) validChars += charset.lowercase;
-        if (opts.numbers) validChars += charset.numbers;
-        if (opts.symbols) validChars += charset.symbols;
+        if (options.uppercase) validChars += charset.uppercase;
+        if (options.lowercase) validChars += charset.lowercase;
+        if (options.numbers) validChars += charset.numbers;
+        if (options.symbols) validChars += charset.symbols;
 
-        if (validChars === "") return "";
+        if (validChars === "") return;
 
         let generated = "";
-        for (let i = 0; i < len; i++) {
-            const randomIndex = Math.floor(Math.random() * validChars.length);
-            generated += validChars[randomIndex];
+        const array = new Uint32Array(length);
+        window.crypto.getRandomValues(array);
+
+        for (let i = 0; i < length; i++) {
+            generated += validChars[array[i] % validChars.length];
         }
-        return generated;
-    };
 
-    const [password, setPassword] = useState(() => generatePass(16, { uppercase: true, lowercase: true, numbers: true, symbols: true }));
-
-    const generatePassword = useCallback(() => {
-        const newPass = generatePass(length, options);
-        setPassword(newPass);
-        calculateStrength(newPass);
+        setPassword(generated);
         setCopied(false);
-        setHistory(prev => [newPass, ...prev].slice(0, 5));
-    }, [length, options, calculateStrength]);
+        setHistory(prev => [generated, ...prev].slice(0, 5));
 
-    // Auto-generate when options change
-    useEffect(() => {
-        const newPass = generatePass(length, options);
-        // eslint-disable-next-line
-        setPassword(newPass);
-        calculateStrength(newPass);
-    }, [length, options, calculateStrength]);
+        const entropy = calculateEntropy(generated);
+        let score = Math.min(100, (entropy / 128) * 100);
+        let label = "LOW";
+        let color = "#ff4d4d";
+
+        if (entropy > 80) { label = "CRITICAL_STRONG"; color = "#00ff88"; }
+        else if (entropy > 50) { label = "SECURE"; color = "#ffcc00"; }
+
+        setStrength({ score, label, color, entropy });
+    }, [length, options, calculateEntropy]);
 
     const copyToClipboard = (text) => {
         if (!text) return;
         navigator.clipboard.writeText(text);
-        if (text === password) {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        notify("SUCCESS", "BUFFER_SYNCED", "Credential copied to clipboard.");
     };
 
-    const handleOptionChange = (e) => {
-        const { name, checked } = e.target;
+    const handleOptionChange = (name, checked) => {
         setOptions((prev) => {
             const next = { ...prev, [name]: checked };
-            // Prevent unchecking the last option
             if (!Object.values(next).some(Boolean)) return prev;
             return next;
         });
     };
 
-    const getStrengthColor = () => {
-        switch (strength) {
-            case 0:
-            case 1:
-                return "#ff4d4d"; // Red
-            case 2:
-            case 3:
-                return "#ffcc00"; // Yellow
-            case 4:
-            case 5:
-                return "#00ff88"; // Green
-            default:
-                return "#333";
-        }
-    };
-
-    const getStrengthLabel = () => {
-        switch (strength) {
-            case 0:
-            case 1:
-                return "Débil";
-            case 2:
-            case 3:
-                return "Media";
-            case 4:
-            case 5:
-                return "Fuerte";
-            default:
-                return "";
-        }
-    };
-
     return (
-        <div
-            style={{
-                minHeight: "100vh",
-                background: "#0a0a0a",
-                color: "#e0e0e0",
-                fontFamily: "'Inter', sans-serif",
-                padding: "40px 20px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-            }}
-        >
-            <div
-                style={{
-                    width: "100%",
-                    maxWidth: "600px",
-                    background: "#111",
-                    border: "1px solid #333",
-                    borderRadius: "16px",
-                    padding: "30px",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-                }}
-            >
-                <h1
-                    style={{
-                        textAlign: "center",
-                        color: "#00ff88",
-                        marginBottom: "30px",
-                        fontSize: "2rem",
-                        textShadow: "0 0 10px rgba(0, 255, 136, 0.3)",
-                    }}
-                >
-                    Generador de Passwords
-                </h1>
+        <div className="min-h-screen bg-[#050505] text-[#e0e0e0] font-mono flex relative overflow-hidden">
+            <div className="lightning-bg"></div>
+            <Sidebar />
+            <main className="flex-1 p-8 relative z-10 overflow-y-auto">
+                <div className="laser-line"></div>
 
-                {/* Password Display */}
-                <div
-                    style={{
-                        background: "#050505",
-                        padding: "20px",
-                        borderRadius: "12px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "20px",
-                        border: "1px solid #222",
-                        position: "relative",
-                    }}
-                >
-                    <span
-                        style={{
-                            fontSize: "1.5rem",
-                            fontFamily: "'Courier New', monospace",
-                            color: "#fff",
-                            wordBreak: "break-all",
-                            marginRight: "10px",
-                        }}
-                    >
-                        {password || "..."}
-                    </span>
-                    <button
-                        onClick={() => copyToClipboard(password)}
-                        style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            color: copied ? "#00ff88" : "#888",
-                            transition: "color 0.2s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px",
-                        }}
-                        title="Copiar"
-                    >
-                        {copied ? (
-                            <>
-                                <span>Copiado!</span>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </>
-                        ) : (
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        )}
-                    </button>
-                </div>
-
-                {/* Strength Meter */}
-                <div style={{ marginBottom: "30px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "0.9rem", color: "#888" }}>
-                        <span>Seguridad</span>
-                        <span style={{ color: getStrengthColor(), fontWeight: "bold" }}>{getStrengthLabel()}</span>
-                    </div>
-                    <div style={{ display: "flex", gap: "5px", height: "8px" }}>
-                        {[1, 2, 3, 4, 5].map((level) => (
-                            <div
-                                key={level}
-                                style={{
-                                    flex: 1,
-                                    background: strength >= level ? getStrengthColor() : "#222",
-                                    borderRadius: "4px",
-                                    transition: "background 0.3s ease",
-                                }}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Controls */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                    {/* Length Slider */}
-                    <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-                            <label>Longitud</label>
-                            <span style={{ color: "#00ff88", fontWeight: "bold" }}>{length}</span>
+                <div className="max-w-6xl mx-auto">
+                    <div className="mb-12 border-b border-[#00ff88]/20 pb-8">
+                        <h1 className="text-6xl font-black text-white tracking-tighter mb-4 animate-in slide-in-from-left duration-700">
+                            ENTROPY_<span className="text-[#00ff88]">FORGE</span>
+                        </h1>
+                        <div className="flex items-center gap-3 text-gray-500 font-bold text-xs uppercase tracking-[0.4em]">
+                            <span className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse shadow-[0_0_10px_#00ff88]"></span>
+                            CRYPTOGRAPHIC_GENERATOR // v4.0
                         </div>
-                        <input
-                            type="range"
-                            min="8"
-                            max="50"
-                            value={length}
-                            onChange={(e) => setLength(Number(e.target.value))}
-                            style={{ width: "100%", cursor: "pointer", accentColor: "#00ff88" }}
-                        />
                     </div>
 
-                    {/* Options */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-                        {[
-                            { name: "uppercase", label: "Mayúsculas (A-Z)" },
-                            { name: "lowercase", label: "Minúsculas (a-z)" },
-                            { name: "numbers", label: "Números (0-9)" },
-                            { name: "symbols", label: "Símbolos (!@#)" },
-                        ].map((opt) => (
-                            <label key={opt.name} style={{ display: "flex", alignItems: "center", cursor: "pointer", userSelect: "none" }}>
-                                <input
-                                    type="checkbox"
-                                    name={opt.name}
-                                    checked={options[opt.name]}
-                                    onChange={handleOptionChange}
-                                    style={{ marginRight: "10px", accentColor: "#00ff88", width: "18px", height: "18px" }}
-                                />
-                                {opt.label}
-                            </label>
-                        ))}
-                    </div>
-                </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Forge Controller */}
+                        <div className="lg:col-span-5 space-y-8">
+                            <div className="glass-card-extreme p-8 cyber-border-extreme relative group">
+                                <div className="absolute top-0 right-0 p-4 opacity-5 text-7xl grayscale group-hover:opacity-20 transition-all duration-1000">🔑</div>
 
-                {/* Generate Button */}
-                <button
-                    onClick={generatePassword}
-                    style={{
-                        width: "100%",
-                        marginTop: "30px",
-                        padding: "15px",
-                        background: "linear-gradient(45deg, #00ff88, #00cc6a)",
-                        border: "none",
-                        borderRadius: "8px",
-                        color: "#003300",
-                        fontSize: "1.1rem",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        transition: "transform 0.1s, box-shadow 0.2s",
-                        boxShadow: "0 4px 15px rgba(0, 255, 136, 0.2)",
-                    }}
-                    onMouseOver={(e) => (e.target.style.transform = "translateY(-2px)")}
-                    onMouseOut={(e) => (e.target.style.transform = "translateY(0)")}
-                    onMouseDown={(e) => (e.target.style.transform = "translateY(1px)")}
-                >
-                    Generar Nueva Contraseña
-                </button>
+                                <div className="space-y-10">
+                                    <div>
+                                        <div className="flex justify-between items-end mb-4">
+                                            <label className="text-[10px] font-black text-[#00ff88] uppercase tracking-widest">Vector_Length</label>
+                                            <span className="text-2xl font-black text-white italic">{length}</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="8"
+                                            max="64"
+                                            value={length}
+                                            onChange={(e) => setLength(Number(e.target.value))}
+                                            className="w-full bg-black/60 h-2 rounded-lg appearance-none cursor-pointer accent-[#00ff88]"
+                                        />
+                                    </div>
 
-                {/* History Section */}
-                {history.length > 0 && (
-                    <div style={{ marginTop: "30px", borderTop: "1px solid #333", paddingTop: "20px" }}>
-                        <h3 style={{ color: "#888", fontSize: "1rem", marginBottom: "15px" }}>Historial Reciente</h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                            {history.map((pass, idx) => (
-                                <div key={idx} style={{
-                                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                                    padding: "10px", background: "#0a0a0a", borderRadius: "8px", border: "1px solid #222"
-                                }}>
-                                    <span style={{ fontFamily: "'Courier New', monospace", fontSize: "0.9rem", color: "#ccc", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                        {pass}
-                                    </span>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {[
+                                            { id: 'uppercase', label: 'UPPERCASE_A_Z' },
+                                            { id: 'lowercase', label: 'LOWERCASE_a_z' },
+                                            { id: 'numbers', label: 'NUMERICS_0_9' },
+                                            { id: 'symbols', label: 'SYMBOLS_!@#' },
+                                        ].map((opt) => (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => handleOptionChange(opt.id, !options[opt.id])}
+                                                className={`p-4 rounded-xl border-2 text-[9px] font-black tracking-widest uppercase transition-all flex flex-col items-center gap-2 ${options[opt.id]
+                                                    ? 'bg-[#00ff88]/10 border-[#00ff88] text-[#00ff88] shadow-[0_0_15px_rgba(0,255,136,0.2)]'
+                                                    : 'bg-black/40 border-white/5 text-gray-600 hover:border-[#00ff88]/30'}`}
+                                            >
+                                                <div className={`w-2 h-2 rounded-full ${options[opt.id] ? 'bg-[#00ff88] shadow-[0_0_5px_#00ff88]' : 'bg-gray-800'}`}></div>
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
                                     <button
-                                        onClick={() => copyToClipboard(pass)}
-                                        style={{ background: "none", border: "none", cursor: "pointer", color: "#00ff88" }}
-                                        title="Copiar"
+                                        onClick={generatePassword}
+                                        className="btn-floating-extreme w-full !py-5 font-black !scale-100 hover:!scale-[1.02]"
                                     >
-                                        📋
+                                        SYNC_NEW_IDENTITY
                                     </button>
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* History Matrix */}
+                            <div className="glass-card-extreme p-8 border-white/5">
+                                <h3 className="text-gray-600 text-[10px] font-black uppercase mb-6 tracking-widest italic">Identity_Vault_Recent</h3>
+                                <div className="space-y-3">
+                                    {history.map((pass, idx) => (
+                                        <div key={idx} className="flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/5 group hover:border-[#00ff88]/30 transition-all">
+                                            <code className="text-[11px] text-gray-400 font-mono truncate mr-4">{pass}</code>
+                                            <button
+                                                onClick={() => copyToClipboard(pass)}
+                                                className="text-[8px] font-black text-[#00ff88]/40 hover:text-[#00ff88] transition-colors"
+                                            >
+                                                EXTRACT
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Forge Workspace */}
+                        <div className="lg:col-span-7 space-y-8">
+                            <div className="glass-card-extreme p-12 cyber-border-extreme min-h-[400px] flex flex-col justify-center relative overflow-hidden">
+                                <div className="absolute top-4 left-8 text-[10px] text-gray-700 font-black tracking-[0.5em] uppercase italic">Forge_Monitor</div>
+
+                                <div className="bg-black/60 p-10 rounded-3xl border-2 border-white/5 mb-12 relative group shadow-inner">
+                                    <div className="absolute -top-3 left-6 px-3 bg-[#050505] text-[#00ff88] text-[9px] font-black uppercase tracking-widest border border-[#00ff88]/20">Generated_Identity</div>
+                                    <div className="flex justify-between items-center gap-8">
+                                        <span className="text-4xl font-black text-white tracking-widest break-all font-mono group-hover:text-[#00ff88] transition-colors duration-500">
+                                            {password || "••••••••••••••••"}
+                                        </span>
+                                        <button
+                                            onClick={() => copyToClipboard(password)}
+                                            className={`p-4 rounded-2xl transition-all ${copied ? 'bg-[#00ff88] text-black shadow-[0_0_20px_#00ff88]' : 'bg-white/5 text-[#00ff88] hover:bg-[#00ff88]/10'}`}
+                                        >
+                                            {copied ? '✓' : '📋'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                            <span>Entropy_Complexity</span>
+                                            <span style={{ color: strength.color }}>{strength.label}</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden flex gap-1">
+                                            {[1, 2, 3, 4, 5].map((i) => (
+                                                <div
+                                                    key={i}
+                                                    className="h-full flex-1 transition-all duration-700"
+                                                    style={{
+                                                        background: strength.score >= (i * 20) ? strength.color : '#111',
+                                                        opacity: strength.score >= (i * 20) ? 1 : 0.2
+                                                    }}
+                                                ></div>
+                                            ))}
+                                        </div>
+                                        <div className="text-[9px] font-bold text-gray-600 italic">
+                                            Identity measures approximately {strength.entropy.toFixed(1)} bits of entropy.
+                                        </div>
+                                    </div>
+
+                                    <div className="glass-card-extreme p-6 border-[#00ff88]/10 bg-[#00ff88]/5 flex flex-col justify-center">
+                                        <div className="text-[9px] font-black text-[#00ff88] mb-2 uppercase tracking-widest">Resistance_Level</div>
+                                        <div className="text-xl font-black text-white italic tracking-tighter">
+                                            {strength.entropy > 60 ? "STATE-LEVEL IMMUNE" : strength.entropy > 40 ? "GPU_BRUTE_RESISTANT" : "SURFACE_VULNERABLE"}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-8 border-2 border-white/5 rounded-3xl bg-gradient-to-r from-black to-white/5 flex items-center gap-8 group">
+                                <div className="text-5xl opacity-20 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000">🏦</div>
+                                <div>
+                                    <div className="text-[#00ff88] text-[10px] font-black uppercase tracking-[0.3em] mb-2 italic">Secured_Identity_Guarantee</div>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                                        Our Identity Forge uses window.crypto (CS-PRNG) for true hardware-level randomness.
+                                        No patterns are stored or cached beyond your current session.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                )}
-
-                <a
-                    href="/herramientas"
-                    style={{
-                        display: "block",
-                        textAlign: "center",
-                        marginTop: "20px",
-                        color: "#666",
-                        textDecoration: "none",
-                        fontSize: "0.9rem",
-                    }}
-                >
-                    ← Volver a Herramientas
-                </a>
-            </div>
+                </div>
+            </main>
         </div>
     );
 }

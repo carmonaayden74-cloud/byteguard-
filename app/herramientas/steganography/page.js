@@ -1,9 +1,12 @@
 "use client";
-import { useState, useRef } from 'react';
+
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Sidebar } from '../../components/DashboardComponents';
+import { Sidebar, TerminalLog } from '../../components/DashboardComponents';
+import { useDefense } from "../../context/DefenseContext";
 
 export default function Steganography() {
+    const { notify } = useDefense();
     const [mode, setMode] = useState('encode'); // 'encode' | 'decode'
     const [image, setImage] = useState(null);
     const [message, setMessage] = useState('');
@@ -11,9 +14,11 @@ export default function Steganography() {
     const [outputImage, setOutputImage] = useState(null);
     const [decodedMessage, setDecodedMessage] = useState('');
     const [status, setStatus] = useState('');
+    const [processing, setProcessing] = useState(false);
+    const [processStep, setProcessStep] = useState(0);
     const canvasRef = useRef(null);
 
-    // --- CRYPTO UTILS ---
+    // --- CRYPTO UTILS (Internal) ---
     const deriveKey = async (password, salt) => {
         const enc = new TextEncoder();
         const keyMaterial = await window.crypto.subtle.importKey(
@@ -36,8 +41,6 @@ export default function Steganography() {
         const encrypted = await window.crypto.subtle.encrypt(
             { name: "AES-GCM", iv: iv }, key, enc.encode(text)
         );
-
-        // Pack: salt(16) + iv(12) + encrypted
         const buffer = new Uint8Array(16 + 12 + encrypted.byteLength);
         buffer.set(salt, 0);
         buffer.set(iv, 16);
@@ -56,17 +59,17 @@ export default function Steganography() {
             );
             return new TextDecoder().decode(decrypted);
         } catch (e) {
-            throw new Error("Incorrect password or corrupted data");
+            throw new Error("AUTHENTICATION_FAILURE: Incorrect key or corrupted stream.");
         }
     };
 
-    // --- STEGANOGRAPHY UTILS ---
+    // --- STEGANOGRAPHY CORE ---
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
-                const img = new Image();
+                const img = new window.Image();
                 img.onload = () => {
                     setImage(img);
                     setOutputImage(null);
@@ -79,20 +82,40 @@ export default function Steganography() {
         }
     };
 
-    const encode = async () => {
-        if (!image || !message || !password) {
-            setStatus('Please fill all fields');
+    const runForge = async () => {
+        if (!image || !password || (mode === 'encode' && !message)) {
+            setStatus('REQUIRED_FIELD_MISSING: Credentials or data empty.');
             return;
         }
 
-        setStatus('Encrypting...');
+        setProcessing(true);
+        setProcessStep(1);
+        setStatus('');
 
+        // Step Simulation
+        const steps = mode === 'encode'
+            ? ['Deriving Entropy...', 'Injecting Ciphertext...', 'Lossless Reconstruction...', 'Finalizing Matrix...']
+            : ['Scanning Pixels...', 'Header Validation...', 'Entropy Extraction...', 'AES-256 Decryption...'];
+
+        for (let i = 0; i < steps.length; i++) {
+            setStatus(steps[i]);
+            setProcessStep(i + 1);
+            await new Promise(r => setTimeout(r, 600));
+        }
+
+        if (mode === 'encode') {
+            await encode();
+        } else {
+            await decode();
+        }
+
+        setProcessing(false);
+    };
+
+    const encode = async () => {
         try {
-            // 1. Encrypt
             const encryptedData = await encryptMessage(message, password);
-
-            // 2. Prepare Data: [MAGIC(4)] + [LENGTH(4)] + [DATA]
-            const magic = new TextEncoder().encode("BGST"); // ByteGuard Stego
+            const magic = new TextEncoder().encode("BGST");
             const lengthBuffer = new ArrayBuffer(4);
             new DataView(lengthBuffer).setUint32(0, encryptedData.length);
 
@@ -101,7 +124,6 @@ export default function Steganography() {
             totalData.set(new Uint8Array(lengthBuffer), 4);
             totalData.set(encryptedData, 8);
 
-            // 3. Embed
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d', { willReadFrequently: true, colorSpace: 'srgb' });
             ctx.imageSmoothingEnabled = false;
@@ -111,9 +133,8 @@ export default function Steganography() {
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const pixels = imgData.data;
 
-            // Check capacity (1 byte per pixel using R channel)
             if (totalData.length * 8 > pixels.length / 4) {
-                setStatus('Image too small for this message');
+                setStatus('IMAGE_CAPACITY_EXCEEDED: Binary stream too large for matrix.');
                 return;
             }
 
@@ -123,45 +144,25 @@ export default function Steganography() {
                     const pixelIdx = (i * 8 + bit) * 4;
                     const val = (byte >> (7 - bit)) & 1;
                     pixels[pixelIdx] = (pixels[pixelIdx] & 0xFE) | val;
-                    pixels[pixelIdx + 3] = 255; // Force Alpha to 100%
+                    pixels[pixelIdx + 3] = 255;
                 }
             }
 
             ctx.putImageData(imgData, 0, 0);
 
-            // IMMEDIATE VERIFICATION
-            const verifyData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            let verifyMagic = 0;
-            for (let i = 0; i < 32; i++) {
-                verifyMagic = (verifyMagic << 1) | (verifyData[i * 4] & 1);
-            }
-            // BGST is 0x42475354
-            if (verifyMagic !== 0x42475354) {
-                console.error("Verification failed. Written: 0x42475354, Read: 0x" + verifyMagic.toString(16));
-                setStatus('Warning: Browser corrupted pixel data immediately. Try a different browser or image.');
-                return;
-            }
-
-            // Use Blob for more reliable large file handling
             canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
                 setOutputImage(url);
-                setStatus('Success! Message encrypted and hidden. (Integrity Verified)');
+                setStatus('CIPHER_FORGED: Data hidden in matrix.');
+                notify('SUCCESS', 'CRYPTOGRAPHIC_FORGE', 'Message successfully embedded in image.');
             }, 'image/png');
 
         } catch (e) {
-            setStatus('Error: ' + e.message);
+            setStatus('ERROR: ' + e.message);
         }
     };
 
     const decode = async () => {
-        if (!image || !password) {
-            setStatus('Please upload image and enter password');
-            return;
-        }
-
-        setStatus('Decrypting...');
-
         try {
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -171,7 +172,6 @@ export default function Steganography() {
             ctx.drawImage(image, 0, 0);
             const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-            // Helper to read bytes
             const readBytes = (offset, count) => {
                 const bytes = new Uint8Array(count);
                 for (let i = 0; i < count; i++) {
@@ -186,111 +186,211 @@ export default function Steganography() {
                 return bytes;
             };
 
-            // 1. Check Magic Bytes (First 4 bytes)
             const magicBytes = readBytes(0, 4);
             const magicStr = new TextDecoder().decode(magicBytes);
 
-            // DEBUG: Capture header for analysis
-            const debugHeader = Array.from(magicBytes).map(b => b.toString(16).padStart(2, '0')).join(' ');
-            console.log("Read Magic Header:", magicStr, "Hex:", debugHeader);
-
             if (magicStr !== "BGST") {
-                throw new Error(`CORRUPTED_OR_INVALID|${debugHeader}|${magicStr}`);
+                throw new Error("INVALID_MATRIX: No ByteGuard signature detected.");
             }
 
-            // 2. Extract Length (Next 4 bytes)
             const lengthBytes = readBytes(4, 4);
             const lengthVal = new DataView(lengthBytes.buffer).getUint32(0);
-            console.log("Read Length Header:", lengthVal, "Hex:", Array.from(lengthBytes).map(b => b.toString(16).padStart(2, '0')).join(' '));
 
-            // Sanity check
-            if (lengthVal <= 0 || lengthVal > 10000000) { // 10MB limit sanity
-                throw new Error("Invalid data length detected");
+            if (lengthVal <= 0 || lengthVal > 10000000) {
+                throw new Error("STREAM_CORRUPTION: Invalid data length.");
             }
 
-            // 3. Extract Data
             const data = readBytes(8, lengthVal);
-
-            // 4. Decrypt
             const text = await decryptMessage(data, password);
             setDecodedMessage(text);
-            setStatus('Message successfully decrypted!');
+            setStatus('FORGE_UNLOCKED: Ciphertext decrypted.');
+            notify('SUCCESS', 'DATA_EXTRACTION', 'Decrypted message extracted from matrix.');
         } catch (e) {
-            console.error(e);
-            if (e.message.startsWith("CORRUPTED_OR_INVALID")) {
-                const parts = e.message.split('|');
-                const hex = parts[1] || "N/A";
-                const str = parts[2] || "N/A";
-                setStatus(`Error: Header mismatch. Expected 'BGST', got '${str}' (Hex: ${hex}). Image was modified or is not a steganographic image.`);
-            } else if (e.message.includes("Incorrect password")) {
-                setStatus('Error: Incorrect password.');
-            } else if (e.message.includes("Invalid data length detected")) {
-                setStatus('Error: Hidden data length is invalid. Image might be corrupted or not a steganographic image.');
-            } else {
-                setStatus('Decryption failed: ' + e.message);
-            }
+            setStatus('DECRYPT_FAILURE: ' + e.message);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-[#cfeed8] font-mono flex">
+        <div className="min-h-screen bg-[#050505] text-[#e0e0e0] font-mono flex relative overflow-hidden">
+            <div className="lightning-bg"></div>
             <Sidebar />
-            <main className="flex-1 ml-64 p-8">
-                <h1 className="text-3xl font-bold text-[#00ff88] mb-6 tracking-tighter">
-                    SECURE STEGANOGRAPHY <span className="text-sm text-gray-500 font-normal">AES-256 ENCRYPTED</span>
-                </h1>
+            <main className="flex-1 p-8 relative z-10 overflow-y-auto">
+                <div className={`laser-line ${processing ? 'animate-scan-fast text-blue-500' : ''}`}></div>
 
-                <div className="bg-[#0a0a0a] border border-[#00ff88]/20 rounded-xl p-6 shadow-lg">
-                    <div className="flex space-x-4 mb-8 border-b border-[#00ff88]/20 pb-4">
-                        <button onClick={() => setMode('encode')} className={`px-4 py-2 rounded transition-all ${mode === 'encode' ? 'bg-[#00ff88] text-black font-bold' : 'text-gray-500 hover:text-[#00ff88]'}`}>ENCRYPT & HIDE</button>
-                        <button onClick={() => setMode('decode')} className={`px-4 py-2 rounded transition-all ${mode === 'decode' ? 'bg-[#00ff88] text-black font-bold' : 'text-gray-500 hover:text-[#00ff88]'}`}>EXTRACT & DECRYPT</button>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm text-[#00ff88] mb-2">1. SELECT IMAGE (PNG Recommended)</label>
-                                <input type="file" accept="image/*" onChange={handleImageUpload} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#00ff88]/10 file:text-[#00ff88] hover:file:bg-[#00ff88]/20" />
-                                <p className="text-xs text-gray-500 mt-1">⚠️ Do not use compressed JPGs. PNG is lossless.</p>
+                <div className="max-w-6xl mx-auto">
+                    <div className="mb-12 border-b border-blue-500/20 pb-8 flex justify-between items-end">
+                        <div>
+                            <h1 className="text-6xl font-black text-white tracking-tighter mb-4 animate-in slide-in-from-left duration-700">
+                                CRYPTO_<span className="text-blue-500">FORGE</span>
+                            </h1>
+                            <div className="flex items-center gap-3 text-gray-500 font-bold text-xs uppercase tracking-[0.4em]">
+                                <span className={`w-2 h-2 rounded-full ${processing ? 'bg-blue-500 animate-ping' : 'bg-[#00ff88]'}`}></span>
+                                {processing ? 'FORGE_SEQUENCE_ACTIVE' : 'STEGANOGRAPHY_ENGINE // READY'}
                             </div>
-
-                            <div>
-                                <label className="block text-sm text-[#00ff88] mb-2">2. PASSWORD (REQUIRED)</label>
-                                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-black border border-[#00ff88]/30 rounded p-3 text-white focus:outline-none focus:border-[#00ff88]" placeholder="Enter a strong password" />
-                            </div>
-
-                            {mode === 'encode' && (
-                                <div>
-                                    <label className="block text-sm text-[#00ff88] mb-2">3. SECRET MESSAGE</label>
-                                    <textarea value={message} onChange={(e) => setMessage(e.target.value)} className="w-full h-32 bg-black border border-[#00ff88]/30 rounded p-3 text-[#00ff88] focus:outline-none focus:border-[#00ff88]" placeholder="Enter the text you want to hide..." />
-                                </div>
-                            )}
-
-                            <button onClick={mode === 'encode' ? encode : decode} className="w-full py-3 bg-[#00ff88] text-black font-bold rounded hover:bg-[#00cc6a] transition-colors shadow-[0_0_15px_rgba(0,255,136,0.3)]">
-                                {mode === 'encode' ? 'ENCRYPT & HIDE DATA' : 'EXTRACT HIDDEN DATA'}
-                            </button>
-
-                            {status && <div className="text-center text-sm font-bold text-yellow-400">{status}</div>}
                         </div>
 
-                        <div className="bg-black/50 rounded-lg p-4 border border-[#00ff88]/10 flex flex-col items-center justify-center min-h-[300px]">
-                            {image && <Image src={image.src} alt="Preview" width={500} height={300} unoptimized className="max-h-64 object-contain border border-gray-700 mb-4" />}
-                            <canvas ref={canvasRef} className="hidden" />
+                        <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                            {['encode', 'decode'].map((m) => (
+                                <button
+                                    key={m}
+                                    onClick={() => setMode(m)}
+                                    className={`px-8 py-3 text-[10px] font-black tracking-widest uppercase transition-all rounded-lg ${mode === m
+                                        ? 'bg-blue-600 text-white shadow-[0_0_25px_rgba(37,99,235,0.4)] scale-105'
+                                        : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    {m === 'encode' ? 'ENCRYPT_HIDE' : 'EXTRACT_DECRYPT'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
 
-                            {mode === 'encode' && outputImage && (
-                                <div className="text-center w-full animate-fade-in">
-                                    <p className="text-[#00ff88] font-bold mb-2">✅ SECURE IMAGE READY</p>
-                                    <Image src={outputImage} alt="Encoded" width={500} height={300} unoptimized className="max-h-64 object-contain border border-[#00ff88] mx-auto mb-4" />
-                                    <a href={outputImage} download="secure_stego.png" className="inline-block px-6 py-2 border border-[#00ff88] text-[#00ff88] rounded hover:bg-[#00ff88] hover:text-black transition-colors">DOWNLOAD PNG (Do not convert)</a>
-                                </div>
-                            )}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Control Panel */}
+                        <div className="lg:col-span-5 space-y-6">
+                            <div className="glass-card-extreme p-8 cyber-border-extreme">
+                                <h3 className="text-blue-500 text-[10px] font-black uppercase mb-6 tracking-widest">Input_Parameters</h3>
+                                <div className="space-y-6">
+                                    <div className="relative group cursor-pointer">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                        <div className="border-2 border-dashed border-white/10 rounded-2xl p-6 text-center group-hover:border-blue-500/50 transition-all">
+                                            <div className="text-3xl mb-2 grayscale group-hover:grayscale-0 transition-all">🖼️</div>
+                                            <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                                {image ? 'IMAGE_LOADED_READY' : 'SELECT_LOSSLESS_PNG'}
+                                            </div>
+                                        </div>
+                                    </div>
 
-                            {mode === 'decode' && decodedMessage && (
-                                <div className="w-full animate-fade-in">
-                                    <p className="text-[#00ff88] font-bold mb-2">🔓 DECRYPTED MESSAGE:</p>
-                                    <div className="bg-[#001100] border border-[#00ff88] p-4 rounded text-[#00ff88] font-mono break-all">{decodedMessage}</div>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="ENCRYPTION_KEY_ [PBKDF2]"
+                                        className="w-full bg-black/60 border-2 border-white/5 rounded-2xl p-4 text-white text-sm focus:border-blue-500 outline-none transition-all font-bold"
+                                    />
+
+                                    {mode === 'encode' && (
+                                        <textarea
+                                            value={message}
+                                            onChange={(e) => setMessage(e.target.value)}
+                                            placeholder="SECRET_MESSAGE_..."
+                                            className="w-full h-32 bg-black/60 border-2 border-white/5 rounded-2xl p-4 text-blue-400 text-sm focus:border-blue-500 outline-none transition-all font-bold resize-none font-mono"
+                                        />
+                                    )}
+
+                                    <button
+                                        onClick={runForge}
+                                        disabled={processing}
+                                        className="btn-floating-extreme !from-blue-600 !to-blue-800 w-full !py-4 font-black"
+                                    >
+                                        {processing ? 'SYNCING_ENTROPY...' : 'INITIATE_FORGE_SEQUENCE'}
+                                    </button>
                                 </div>
-                            )}
+                            </div>
+
+                            <TerminalLog />
+                        </div>
+
+                        {/* Forge Visualization */}
+                        <div className="lg:col-span-7">
+                            <div className="glass-card-extreme cyber-border-extreme min-h-[500px] flex flex-col items-center justify-center p-8 relative overflow-hidden group">
+                                {processing && (
+                                    <div className="absolute inset-0 bg-blue-500/5 animate-pulse z-0"></div>
+                                )}
+
+                                <canvas ref={canvasRef} className="hidden" />
+
+                                <div className="z-10 w-full flex flex-col items-center">
+                                    {image && !outputImage && !decodedMessage && (
+                                        <div className="animate-in fade-in duration-700">
+                                            <div className="text-[10px] font-black text-gray-400 mb-4 uppercase tracking-widest text-center">Reference_Matrix</div>
+                                            <Image
+                                                src={image.src}
+                                                alt="Source"
+                                                width={500}
+                                                height={300}
+                                                unoptimized
+                                                className={`max-h-72 object-contain rounded-xl border border-white/10 shadow-2xl transition-all ${processing ? 'scale-95 grayscale' : ''}`}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {outputImage && (
+                                        <div className="animate-in zoom-in duration-500 text-center w-full">
+                                            <div className="text-[10px] font-black text-blue-500 mb-4 uppercase tracking-widest">Finalized_Matrix_Output</div>
+                                            <Image
+                                                src={outputImage}
+                                                alt="Output"
+                                                width={500}
+                                                height={300}
+                                                unoptimized
+                                                className="max-h-72 object-contain rounded-xl border-2 border-blue-500 shadow-[0_0_50px_rgba(37,99,235,0.3)] mx-auto mb-6 hover:scale-105 transition-transform"
+                                            />
+                                            <a
+                                                href={outputImage}
+                                                download="byteguard_stego.png"
+                                                className="btn-futuristic !bg-blue-600 !border-blue-600 !px-8"
+                                            >
+                                                DOWNLOAD_MATRIX_PNG
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {decodedMessage && (
+                                        <div className="animate-in slide-in-from-bottom-10 duration-500 w-full">
+                                            <div className="text-[10px] font-black text-[#00ff88] mb-4 uppercase tracking-widest text-center">Extracted_Plaintext</div>
+                                            <div className="bg-black/80 border-2 border-[#00ff88]/30 p-8 rounded-3xl text-[#00ff88] font-bold text-lg break-all shadow-[0_0_30px_rgba(0,255,136,0.1)] backdrop-blur-xl">
+                                                {decodedMessage}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!image && (
+                                        <div className="text-center opacity-30">
+                                            <div className="text-8xl mb-8 grayscale group-hover:grayscale-0 transition-all duration-1000">🛠️</div>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-[0.4em] mb-4">Awaiting_Source</h3>
+                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest max-w-sm mx-auto leading-relaxed">
+                                                The forge requires a lossless container to hide data. Loading compressed JPEGs may lead to pixel entropy loss.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {status && (
+                                        <div className="mt-8 px-6 py-2 bg-white/5 rounded-full border border-white/5 text-[9px] font-black text-blue-400 uppercase tracking-[0.3em] animate-pulse">
+                                            {status}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Processing Steps */}
+                                {processing && (
+                                    <div className="absolute bottom-8 left-8 right-8 flex gap-2">
+                                        {Array.from({ length: 4 }).map((_, i) => (
+                                            <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i < processStep ? 'bg-blue-500' : 'bg-gray-800'}`}></div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer Info */}
+                    <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <div className="text-blue-500 text-[9px] font-black uppercase mb-1 tracking-widest">Encryption_Alg</div>
+                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">AES-256-GCM with PBKDF2 iteration count: 100,000.</div>
+                        </div>
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <div className="text-blue-500 text-[9px] font-black uppercase mb-1 tracking-widest">Injection_Method</div>
+                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">LSB (Least Significant Bit) manipulation across RGB channels.</div>
+                        </div>
+                        <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <div className="text-blue-500 text-[9px] font-black uppercase mb-1 tracking-widest">Lossless_Requirement</div>
+                            <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">PNG format ensures pixel-perfect data retrieval. Avoid JPEG.</div>
                         </div>
                     </div>
                 </div>

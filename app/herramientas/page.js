@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sidebar } from "../components/DashboardComponents";
 
 const styles = {
   container: {
@@ -61,6 +62,20 @@ const styles = {
 export default function Herramientas() {
   const tools = [
     {
+      name: "AI Threat Detector",
+      url: "/herramientas/ai-threat-detector",
+      icon: "🤖",
+      desc: "Detect AI-generated malicious code and suspicious patterns.",
+      pro: true
+    },
+    {
+      name: "Code Analyzer",
+      url: "/herramientas/code-analyzer",
+      icon: "🔍",
+      desc: "Deep code analysis for vulnerabilities and exploits.",
+      pro: true
+    },
+    {
       name: "Site Security Auditor",
       url: "/herramientas/site-auditor",
       icon: "🛡️",
@@ -89,45 +104,52 @@ export default function Herramientas() {
       pro: true
     },
     {
-      name: "Password Auditor",
+      name: "Entropy Auditor",
       url: "/herramientas/bruteforce-sim",
       icon: "⚡",
-      desc: "Calculate entropy and estimated crack time.",
+      desc: "Calculate cryptographic entropy and estimated brute-force resistance.",
+      pro: true
+    },
+    {
+      name: "Password Generator",
+      url: "/herramientas/generador-passwords",
+      icon: "🔑",
+      desc: "Generate cryptographically secure passwords with custom entropy rules.",
       pro: true
     },
     {
       name: "Metadata Extractor",
       url: "/herramientas/metadata",
       icon: "📸",
-      desc: "Extract hidden GPS & Exif data from images.",
+      desc: "Extract hidden GPS, device, and EXIF metadata from digital media.",
       pro: true
     },
     {
       name: "Steganography",
       url: "/herramientas/steganography",
       icon: "🖼️",
-      desc: "Hide secret messages inside images.",
+      desc: "Conceal encrypted data within visual carriers using LSB techniques.",
       pro: true
     },
     {
       name: "Link Forensics",
       url: "/herramientas/phishing",
       icon: "🔎",
-      desc: "Analyze URLs for phishing indicators.",
+      desc: "Deep analysis of URIs for deceptive patterns and phishing clusters.",
       pro: true
     },
     {
-      name: "Payload Vault",
+      name: "SQLi Tester & Fuzzer",
       url: "/herramientas/sqli",
       icon: "💉",
-      desc: "Database of SQL injection payloads.",
+      desc: "Advanced automated scanner for SQL injection vulnerabilities and fuzzing.",
       pro: true
     },
     {
-      name: "Keylogger Detector",
-      url: "/herramientas/keylogger",
-      icon: "⌨️",
-      desc: "Analyze browser input capture events.",
+      name: "Browser Auditor",
+      url: "/herramientas/browser-auditor",
+      icon: "🕵️",
+      desc: "Analyze browser fingerprinting and privacy leaks.",
       pro: true
     },
     {
@@ -144,33 +166,73 @@ export default function Herramientas() {
       desc: "Secure text with AES-256 encryption.",
       pro: true
     },
+    {
+      name: "Headers Analyzer",
+      url: "/herramientas/headers",
+      icon: "📋",
+      desc: "Inspect HTTP headers and security policies.",
+      pro: true
+    },
   ];
 
   return (
-    <div style={styles.container}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "2.5rem", color: "#00ff88", marginBottom: "10px" }}>Cybersecurity Tools</h1>
-        <p style={{ color: "#888" }}>Professional grade tools for analysis and education.</p>
-
-        <div style={styles.grid}>
-          {tools.map((t) => (
-            <Link key={t.url} href={t.url} style={styles.card} className="hover:border-[#00ff88] hover:shadow-[0_0_20px_rgba(0,255,136,0.1)]">
-              <div style={styles.cardHeader}>
-                <span style={styles.icon}>{t.icon}</span>
-                <div>
-                  <h3 style={styles.title}>{t.name}</h3>
-                </div>
-                {t.pro && <span style={styles.badge}>PRO</span>}
+    <div className="min-h-screen bg-[#050505] text-[#e0e0e0] font-mono flex relative overflow-hidden">
+      <div className="lightning-bg"></div>
+      <Sidebar />
+      <main className="flex-1 p-8 relative z-10 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 border-b border-[#00ff88]/20 pb-8 flex justify-between items-end">
+            <div>
+              <h1 className="text-6xl font-black text-white tracking-tighter mb-4 animate-in slide-in-from-left duration-700">
+                CYBERSECURITY_<span className="text-[#00ff88]">TOOLS</span>
+              </h1>
+              <div className="flex items-center gap-3 text-gray-500 font-bold text-xs uppercase tracking-[0.4em]">
+                <span className="w-2 h-2 bg-[#00ff88] rounded-full animate-ping"></span>
+                ACTIVE_MODULE_DATABASE // v2.4.0
               </div>
-              <p style={styles.description}>{t.desc}</p>
+            </div>
+          </div>
+          <p className="text-[#00ff88]/60 max-w-2xl leading-relaxed">
+            Access the professional-grade security suite. Each module is optimized for deep analysis and defensive verification.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {tools.map((t) => (
+            <Link
+              key={t.url}
+              href={t.url}
+              className="glass-card-extreme cyber-border-extreme p-6 group transition-all duration-300 hover:scale-[1.02] flex flex-col h-full"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-4xl group-hover:scale-110 transition-transform">{t.icon}</span>
+                {t.pro && (
+                  <span className="bg-[#00ff88] text-black text-[10px] font-bold px-2 py-0.5 rounded shadow-[0_0_10px_rgba(0,255,136,0.5)]">
+                    ENCRYPTED_ACCESS
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#00ff88] transition-colors">
+                  {t.name.toUpperCase()}
+                </h3>
+                <p className="text-sm text-gray-500 leading-snug">
+                  {t.desc}
+                </p>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#00ff88]/10 flex items-center justify-between">
+                <span className="text-[10px] text-[#00ff88]/40 font-bold tracking-widest">INITIATE_SCAN</span>
+                <span className="text-[#00ff88] opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+              </div>
             </Link>
           ))}
         </div>
-
-        <Link href="/" style={{ display: "inline-block", marginTop: "40px", color: "#666", textDecoration: "none" }}>
-          ← Back to Home
+        <Link href="/" className="inline-block mt-16 text-[#00ff88]/40 hover:text-[#00ff88] transition-colors text-sm font-bold tracking-widest uppercase">
+          [ ESCAPE_TO_ROOT ]
         </Link>
-      </div>
+      </main>
     </div>
   );
 }

@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '../../components/DashboardComponents';
 
-export default function FakeTerminal() {
-    const [lines, setLines] = useState(['Initializing ByteGuard Kernel...', 'Loading modules...', 'Connection established.']);
+export default function WebTerminal() {
+    const [lines, setLines] = useState(['ByteGuard Web Terminal v2.1.0', 'Type "help" for available commands.']);
     const [input, setInput] = useState('');
     const terminalRef = useRef(null);
     const bottomRef = useRef(null);
@@ -40,15 +40,15 @@ export default function FakeTerminal() {
             response = `Available commands:
   help            Show this help message
   clear           Clear the terminal screen
-  ping <host>     Test reachability (HTTP HEAD)
+  ping <host>     Check HTTP reachability
   dns <domain>    Lookup DNS records
-  http <url>      Fetch HTTP headers
-  whoami          Show current user session`;
+  http <url>      Inspect HTTP headers
+  whoami          Show current session info`;
         } else if (command === 'clear') {
             setLines([]);
             return;
         } else if (command === 'whoami') {
-            response = 'root (ByteGuard Security Analyst)';
+            response = 'uid=0(root) gid=0(root) groups=0(root)';
         } else if (command === 'ping') {
             if (!target) {
                 response = 'Usage: ping <host> (e.g., ping google.com)';
@@ -56,14 +56,13 @@ export default function FakeTerminal() {
                 setLines([...newLines, `Pinging ${target}...`]);
                 try {
                     const start = Date.now();
-                    // Use link-check API as a proxy for reachability
                     const res = await fetch('/api/link-check', {
                         method: 'POST',
                         body: JSON.stringify({ url: target.startsWith('http') ? target : `https://${target}` })
                     });
                     const end = Date.now();
                     if (res.ok) {
-                        response = `Reply from ${target}: time=${end - start}ms status=${res.status}`;
+                        response = `64 bytes from ${target}: time=${end - start}ms status=${res.status}`;
                     } else {
                         response = `Request timed out or failed.`;
                     }
@@ -115,13 +114,6 @@ export default function FakeTerminal() {
         }
     };
 
-    // Hacker Typer Effect (Type random code on key press)
-    const handleHackerTyper = (e) => {
-        // Optional: If user wants just visual noise
-        // const codeSnippet = "struct group_info init_groups = { .usage = ATOMIC_INIT(2) };";
-        // setLines(prev => [...prev, codeSnippet.substring(0, Math.random() * 10)]);
-    };
-
     return (
         <div className="min-h-screen bg-black text-[#00ff88] font-mono flex" onClick={handleFocus}>
             <Sidebar />
@@ -147,7 +139,7 @@ export default function FakeTerminal() {
                 </div>
 
                 <div className="p-2 border-t border-[#00ff88]/20 text-xs text-gray-500 text-center">
-                    INTERACTIVE TERMINAL SESSION - TYPE &apos;help&apos; FOR COMMANDS
+                    WEB TERMINAL SESSION - CONNECTED
                 </div>
             </main >
         </div >

@@ -5,9 +5,6 @@ export async function POST(req) {
         const { messages, apiKey: clientApiKey } = await req.json();
         const apiKey = clientApiKey || process.env.OPENAI_API_KEY;
 
-        // 1. Check if API Key exists
-        console.log('API Key present:', !!apiKey);
-
         if (!apiKey) {
             return NextResponse.json({
                 role: 'assistant',

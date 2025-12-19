@@ -1,5 +1,6 @@
 "use client";
-import { Sidebar, ThreatMap, TerminalLog, StatsPanel } from '../components/DashboardComponents';
+import { Sidebar, ThreatMap, TerminalLog } from '../components/DashboardComponents';
+import SystemStatus from '../components/SystemStatus';
 import Link from 'next/link';
 
 export default function Laboratorio() {
@@ -34,7 +35,7 @@ export default function Laboratorio() {
             <ThreatMap />
           </div>
           <div className="flex flex-col gap-6">
-            <StatsPanel />
+            <SystemStatus />
             <TerminalLog />
           </div>
         </div>
@@ -47,39 +48,39 @@ export default function Laboratorio() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <ToolCard
             title="STEGANOGRAPHY"
-            desc="Hide data in images"
+            desc="LSB Image Encoding"
             href="/herramientas/steganography"
             icon="🖼️"
           />
           <ToolCard
-            title="PHISHING SIM"
-            desc="Analyze suspicious links"
+            title="LINK FORENSICS"
+            desc="Analyze URL Phishing Patterns"
             href="/herramientas/phishing"
-            icon="🎣"
+            icon="🔎"
           />
           <ToolCard
-            title="SQL INJECTION"
-            desc="Test database vulnerabilities"
+            title="SQLI TESTER & FUZZER"
+            desc="Automated Injection Scanner"
             href="/herramientas/sqli"
             icon="💉"
           />
           <ToolCard
-            title="KEYLOGGER DET"
-            desc="Detect malicious inputs"
-            href="/herramientas/keylogger"
-            icon="⌨️"
+            title="BROWSER AUDITOR"
+            desc="Check Digital Fingerprints"
+            href="/herramientas/browser-auditor"
+            icon="🕵️"
           />
           <ToolCard
-            title="PASSWORD GEN"
-            desc="Create secure keys"
-            href="/herramientas/generador-passwords"
-            icon="🔑"
+            title="ENTROPY AUDITOR"
+            desc="Cryptographic Strength Audit"
+            href="/herramientas/bruteforce-sim"
+            icon="⚡"
           />
           <ToolCard
             title="PORT SCANNER"
-            desc="Simulate network scan"
-            href="/herramientas/escaneo-de-puertos"
-            icon="📡"
+            desc="Service & Port Reconnaissance"
+            href="/herramientas/port-scanner"
+            icon="🎯"
           />
         </div>
       </main>

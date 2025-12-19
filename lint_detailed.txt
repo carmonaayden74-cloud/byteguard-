@@ -1,0 +1,70 @@
+
+> byteguard@0.1.0 lint
+> eslint
+
+Warning: React version was set to "detect" in eslint-plugin-react settings, but the "react" package is not installed. Assuming latest React version for linting.
+[BABEL] Note: The code generator has deoptimised the styling of /Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.next/server/chunks/ssr/[root-of-the-server]__187f831e._.js as it exceeds the max of 500KB.
+
+/Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.netlify/dist/build/image-cdn.js
+  1547:7  warning  Unused eslint-disable directive (no problems were reported from 'id-length')
+  1557:7  warning  Unused eslint-disable directive (no problems were reported from 'id-length')
+
+/Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.netlify/dist/build/templates/handler-monorepo.tmpl.js
+  13:1  warning  Unexpected default export of anonymous function  import/no-anonymous-default-export
+
+/Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.netlify/dist/run/handlers/cache.cjs
+  147:15  error  Definition for rule 'import/no-unresolved' was not found  import/no-unresolved
+  147:15  error  Definition for rule 'n/no-missing-import' was not found   n/no-missing-import
+  155:15  error  Definition for rule 'import/no-unresolved' was not found  import/no-unresolved
+  155:15  error  Definition for rule 'n/no-missing-import' was not found   n/no-missing-import
+
+/Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.netlify/dist/run/next.cjs
+  578:7  error  Definition for rule 'n/global-require' was not found                    n/global-require
+  578:7  error  Definition for rule '@typescript-eslint/no-var-requires' was not found  @typescript-eslint/no-var-requires
+
+/Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.next/server/chunks/[turbopack]_runtime.js
+    9:5  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+   31:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+   96:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  140:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  156:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  166:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  228:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  377:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  525:1  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+  546:1  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+  567:1  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+
+/Users/aydenCR/byteguard/.netlify/functions-internal/___netlify-server-handler/.next/server/chunks/ssr/[turbopack]_runtime.js
+    9:5  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+   31:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+   96:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  140:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  156:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  166:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  228:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  377:5  error  Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable  @next/next/no-assign-module-variable
+  525:1  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+  546:1  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+  567:1  error  Definition for rule '@typescript-eslint/no-unused-vars' was not found                                    @typescript-eslint/no-unused-vars
+
+/Users/aydenCR/byteguard/app/herramientas/generador-passwords/page.js
+  77:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  75 |     // Initialize on mount
+  76 |     useEffect(() => {
+> 77 |         generatePassword();
+     |         ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  78 |     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  79 |
+  80 |     const copyToClipboard = (text) => {  react-hooks/set-state-in-effect
+
+✖ 32 problems (29 errors, 3 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+

@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
+import { rateLimit } from '../../lib/rate-limit';
 import net from 'net';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const target = searchParams.get('target');
+    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+
+    const limiter = rateLimit(ip, 3, 60000); // 3 per minute (expensive scan)
+    if (!limiter.success) {
+        return NextResponse.json({ error: 'Too many scans. Slow down.' }, { status: 429 });
+    }
 
     if (!target) {
         return NextResponse.json({ error: 'Target IP/Domain is required' }, { status: 400 });
