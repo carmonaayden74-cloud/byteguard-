@@ -1,0 +1,175 @@
+{
+    "sidebar": {
+        "dashboard": "DASHBOARD",
+        "site_auditor": "SITE AUDITOR",
+        "port_scanner": "PORT SCANNER",
+        "dns_lookup": "DNS LOOKUP",
+        "ip_intel": "IP INTELLIGENCE",
+        "steganography": "STEGANOGRAPHY",
+        "link_forensics": "LINK FORENSICS",
+        "sqli_tester": "SQLI TESTER & FUZZER",
+        "browser_auditor": "BROWSER AUDITOR",
+        "password_forge": "PASSWORD FORGE",
+        "metadata_forensics": "METADATA FORENSICS",
+        "entropy_auditor": "ENTROPY AUDITOR",
+        "web_honeypot": "WEB HONEYPOT",
+        "exit": "EXIT",
+        "status_secure": "STATUS: SECURE",
+        "ai_threat_detector": "AI DETECTOR",
+        "code_analyzer": "CODE ANALYZER",
+        "password_generator": "PASSWORD GENERATOR",
+        "terminal": "TERMINAL",
+        "encriptador": "ENCRYPTOR",
+        "headers": "HEADERS ANALYZER",
+        "data_leak": "DATA LEAK DETECTOR",
+        "subdomain_recon": "SUBDOMAIN RECON",
+        "hash_cracker": "HASH CRACKER",
+        "jwt_audit": "JWT AUDIT",
+        "payload_lab": "PAYLOAD LAB",
+        "threat_intel": "THREAT INTELLIGENCE",
+        "cve_oracle": "CVE ORACLE",
+        "cloud_sentry": "CLOUD SENTRY",
+        "bin_analyst": "BIN ANALYST",
+        "osint_searcher": "OSINT SEARCHER",
+        "dark_web_monitor": "DARK WEB MONITOR",
+        "geo_tracker": "GEO TRACKER",
+        "recovery_protocol": "RECOVERY PROTOCOL",
+        "account_resurrect": "ACCOUNT RESURRECTION",
+        "attacker_intercept": "ATTACKER INTERCEPT",
+        "session_sanitizer": "SESSION SANITIZER",
+        "forensic_report": "FORENSIC REPORT"
+    },
+    "herramientas": {
+        "title": "CYBERSECURITY_<span class='text-[#00ff88]'>TOOLS</span>",
+        "active_modules": "ACTIVE_MODULE_DATABASE",
+        "description": "Access the professional-grade security suite. Each module is optimized for deep analysis and defensive verification.",
+        "initiate_scan": "INITIATE_SCAN",
+        "encrypted_access": "ENCRYPTED_ACCESS",
+        "escape": "[ ESCAPE_TO_ROOT ]"
+    },
+    "tools": {
+        "ai_threat_detector": {
+            "desc": "Detect AI-generated malicious code and suspicious patterns."
+        },
+        "code_analyzer": {
+            "desc": "Deep code analysis for vulnerabilities and exploits."
+        },
+        "site_auditor": {
+            "desc": "Analyze security headers, SSL, and vulnerabilities."
+        },
+        "port_scanner": {
+            "desc": "Scan for open ports on remote servers."
+        },
+        "dns_lookup": {
+            "desc": "Retrieve detailed DNS records (A, MX, TXT)."
+        },
+        "ip_intel": {
+            "desc": "Geolocation and ISP data for any IP address."
+        },
+        "entropy_auditor": {
+            "desc": "Calculate cryptographic entropy and estimated brute-force resistance."
+        },
+        "password_generator": {
+            "desc": "Generate cryptographically secure passwords with custom entropy rules."
+        },
+        "metadata": {
+            "desc": "Extract hidden GPS, device, and EXIF metadata from digital media."
+        },
+        "steganography": {
+            "desc": "Conceal encrypted data within visual carriers using LSB techniques."
+        },
+        "phishing": {
+            "desc": "Deep analysis of URIs for deceptive patterns and phishing clusters."
+        },
+        "sqli": {
+            "desc": "Advanced automated scanner for SQL injection vulnerabilities and fuzzing."
+        },
+        "browser_auditor": {
+            "desc": "Analyze browser fingerprinting and privacy leaks."
+        },
+        "terminal": {
+            "desc": "Network connectivity tools (Ping, HTTP)."
+        },
+        "encriptador": {
+            "desc": "Secure text with AES-256 encryption."
+        },
+        "headers": {
+            "desc": "Inspect HTTP headers and security policies."
+        },
+        "data_leak": {
+            "desc": "Check if your email has been exposed in massive data breaches."
+        },
+        "honeypot": {
+            "desc": "Monitor intrusion attempts in real-time using deception traps."
+        },
+        "subdomain_recon": {
+            "desc": "Map attack surfaces by enumerating subdomains and hidden assets."
+        },
+        "hash_cracker": {
+            "desc": "Identify and reverse MD5, SHA-1, and SHA-256 cryptographic hashes."
+        },
+        "jwt_audit": {
+            "desc": "Decode and analyze vulnerabilities in JSON Web Tokens (JWT)."
+        },
+        "payload_lab": {
+            "desc": "Advanced exploit payload generator with obfuscation techniques."
+        },
+        "threat_intel": {
+            "desc": "Global attack heatmap and real-time threat intelligence feed."
+        },
+        "cve_oracle": {
+            "desc": "Instant lookup for CVE vulnerability database and risk scores."
+        },
+        "cloud_sentry": {
+            "desc": "Audit cloud infrastructure security (S3, IAM, Azure, GCP)."
+        },
+        "bin_analyst": {
+            "desc": "Static binary forensics and malware detection analyzer."
+        },
+        "osint_searcher": {
+            "desc": "Locate public info and digital footprint by name or alias."
+        },
+        "dark_web_monitor": {
+            "desc": "Detect stolen accounts and data leaks in the Dark Web."
+        },
+        "geo_tracker": {
+            "desc": "Advanced geographic tracker via IP and triangulation."
+        },
+        "recovery_protocol": {
+            "desc": "Tactical assistant for recovering stolen accounts and sites."
+        },
+        "account_resurrect": {
+            "desc": "Deep protocols for reviving stolen Meta, Google, and Microsoft accounts."
+        },
+        "attacker_intercept": {
+            "desc": "Retaliation module: Intercept attacker data using tactical deceivers."
+        },
+        "session_sanitizer": {
+            "desc": "Force mass session logout and purge malicious tokens in the cloud."
+        },
+        "forensic_report": {
+            "desc": "Legal evidence generator and intrusion traces for abuse reporting."
+        }
+    },
+    "common": {
+        "language": "Language",
+        "spanish": "Spanish",
+        "english": "English"
+    },
+    "dashboard": {
+        "title": "COMMAND CENTER",
+        "connection": "SECURE CONNECTION ESTABLISHED",
+        "available_tools": "AVAILABLE TOOLS"
+    },
+    "home": {
+        "login": "LOGIN",
+        "dashboard": "DASHBOARD",
+        "hero_tag": "Professional Security Suite v2.0",
+        "hero_title": "Advanced Cyber<br />Defense Platform",
+        "hero_desc": "A complete suite of professional-grade tools for security auditing, forensic analysis, and defensive intelligence. Built for researchers, developers, and ethical hackers.",
+        "launch_console": "LAUNCH CONSOLE",
+        "read_manifesto": "READ MANIFESTO",
+        "footer_rights": "ByteGuard Security Research. All rights reserved.",
+        "footer_disclaimer": "For educational and defensive purposes only."
+    }
+}

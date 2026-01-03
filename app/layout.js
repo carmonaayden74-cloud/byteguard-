@@ -34,6 +34,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { DefenseProvider } from "./context/DefenseContext";
 
 import Link from "next/link";
+import { LanguageProvider } from "./context/LanguageContext";
 
 export default function RootLayout({ children }) {
   return (
@@ -64,62 +65,64 @@ export default function RootLayout({ children }) {
       <body style={{ margin: 0, fontFamily: "Inter, Arial, sans-serif" }} suppressHydrationWarning>
         <div className="lightning-bg"></div>
         <AuthProvider>
-          <DefenseProvider>
-            <header style={{
-              background: "#050505",
-              borderBottom: "1px solid rgba(0,255,136,0.06)",
-              padding: "12px 24px",
-              display: "flex",
-              alignItems: "center",
-              gap: 20,
-              color: "#BFBFBF",
-              position: "relative",
-              zIndex: 100
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: "700", color: "#00ff88" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo.png" alt="ByteGuard Logo" style={{ height: "32px", width: "auto" }} />
-                BYTEGUARD
-              </div>
+          <LanguageProvider>
+            <DefenseProvider>
+              <header style={{
+                background: "#050505",
+                borderBottom: "1px solid rgba(0,255,136,0.06)",
+                padding: "12px 24px",
+                display: "flex",
+                alignItems: "center",
+                gap: 20,
+                color: "#BFBFBF",
+                position: "relative",
+                zIndex: 100
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: "700", color: "#00ff88" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logo.png" alt="ByteGuard Logo" style={{ height: "32px", width: "auto" }} />
+                  BYTEGUARD
+                </div>
 
-              <nav style={{ display: "flex", gap: 12, marginLeft: 12 }}>
-                <Link href="/" style={linkStyle}>Inicio</Link>
-                <Link href="/laboratorio" style={linkStyle}>Laboratorio</Link>
-                <Link href="/herramientas" style={linkStyle}>Herramientas</Link>
-                <Link href="/precios" style={linkStyle}>Precios</Link>
-                <Link href="/contacto" style={linkStyle}>Contacto</Link>
-              </nav>
-            </header>
+                <nav style={{ display: "flex", gap: 12, marginLeft: 12 }}>
+                  <Link href="/" style={linkStyle}>Inicio</Link>
+                  <Link href="/laboratorio" style={linkStyle}>Laboratorio</Link>
+                  <Link href="/herramientas" style={linkStyle}>Herramientas</Link>
+                  <Link href="/precios" style={linkStyle}>Precios</Link>
+                  <Link href="/contacto" style={linkStyle}>Contacto</Link>
+                </nav>
+              </header>
 
-            <main className="relative z-10">
-              {/* Trap Link for Bots - Invisible to humans */}
-              <a href="/wp-admin" style={{ display: 'none' }} aria-hidden="true">Admin Login</a>
-              {children}
-            </main>
+              <main className="relative z-10">
+                {/* Trap Link for Bots - Invisible to humans */}
+                <a href="/wp-admin" style={{ display: 'none' }} aria-hidden="true">Admin Login</a>
+                {children}
+              </main>
 
-            <footer style={{
-              background: "#050505",
-              borderTop: "1px solid rgba(0,255,136,0.06)",
-              padding: "24px",
-              textAlign: "center",
-              fontSize: "12px",
-              color: "#666",
-              position: "relative",
-              zIndex: 100
-            }}>
-              <div style={{ marginBottom: 8 }}>
-                © {new Date().getFullYear()} BYTEGUARD RESEARCH. ALL RIGHTS RESERVED.
-              </div>
-              <div style={{ display: "flex", justifyContent: "center", gap: 20 }}>
-                <Link href="/legal/privacy" style={footerLinkStyle}>Privacy Policy</Link>
-                <Link href="/legal/terms" style={footerLinkStyle}>Terms of Service</Link>
-                <Link href="/legal/disclaimer" style={{ ...footerLinkStyle, color: "#00ff88" }}>Security Disclaimer</Link>
-              </div>
-            </footer>
+              <footer style={{
+                background: "#050505",
+                borderTop: "1px solid rgba(0,255,136,0.06)",
+                padding: "24px",
+                textAlign: "center",
+                fontSize: "12px",
+                color: "#666",
+                position: "relative",
+                zIndex: 100
+              }}>
+                <div style={{ marginBottom: 8 }}>
+                  © {new Date().getFullYear()} BYTEGUARD RESEARCH. ALL RIGHTS RESERVED.
+                </div>
+                <div style={{ display: "flex", justifyContent: "center", gap: 20 }}>
+                  <Link href="/legal/privacy" style={footerLinkStyle}>Privacy Policy</Link>
+                  <Link href="/legal/terms" style={footerLinkStyle}>Terms of Service</Link>
+                  <Link href="/legal/disclaimer" style={{ ...footerLinkStyle, color: "#00ff88" }}>Security Disclaimer</Link>
+                </div>
+              </footer>
 
-            <PrivacyBanner />
-            <AIAssistant />
-          </DefenseProvider>
+              <PrivacyBanner />
+              <AIAssistant />
+            </DefenseProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>
