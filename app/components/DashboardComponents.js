@@ -9,6 +9,7 @@ export function Sidebar() {
     const { t, language, toggleLanguage } = useTranslation();
 
     const menuItems = [
+        { name: '📚 TUTORIAL', path: '/tutorial', icon: '🎓' },
         { name: t('sidebar.dashboard'), path: '/laboratorio', icon: '⚡' },
         { name: t('sidebar.site_auditor'), path: '/herramientas/site-auditor', icon: '🛡️' },
         { name: t('sidebar.port_scanner'), path: '/herramientas/port-scanner', icon: '🎯' },
