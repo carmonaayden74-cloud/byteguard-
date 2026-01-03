@@ -20,25 +20,30 @@ export default function AttackerIntercept() {
 
     const generateToken = async () => {
         setGenerating(true);
-        notify('INFO', 'DEPLOYING_DECOY', `Generating tactical ${tokenType} and priming sensors...`);
+        notify('INFO', 'GENERATING_BAIT', `Compiling tactical ${tokenType} file...`);
 
+        // Real File Download Simulation (Client Side Blob)
         setTimeout(() => {
-            setGenerating(false);
-            notify('SUCCESS', 'TOKEN_ACTIVE', `${tokenType} deployed. Sensors are live and awaiting interaction.`);
+            const element = document.createElement("a");
+            const file = new Blob(["%PDF-1.4\n%...Binary Beacon Payload..."], { type: 'application/pdf' });
+            element.href = URL.createObjectURL(file);
+            element.download = `TACTICAL_BAIT_${tokenType}_LOG_77.pdf`;
+            document.body.appendChild(element); // Required for this to work in FireFox
+            element.click();
 
-            // Simulate a "capture" after 10 seconds for demo
-            setTimeout(() => {
-                const newCapture = {
-                    time: new Date().toLocaleTimeString(),
-                    ip: '185.12.4' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255),
-                    location: 'St. Petersburg, RU',
-                    device: 'Kali Linux / Firefox 120.0',
-                    action: 'DECOY_OPENED_CRITICAL'
-                };
-                setCaptureLog(prev => [newCapture, ...prev]);
-                notify('ALERT', 'INTRUDER_TRAPPED', `Interceptor captured connection from ${newCapture.ip}! Retaliation data logged.`);
-            }, 8000);
-        }, 2000);
+            setGenerating(false);
+            notify('SUCCESS', 'DOWNLOAD_READY', `Bait file generated. Send this file to the target to begin interception.`);
+
+            // Add to log as "Created" not "Captured"
+            const newLog = {
+                time: new Date().toLocaleTimeString(),
+                ip: 'PENDING_DELIVERY',
+                location: 'WAITING_FOR_OPEN',
+                device: 'TRACKING_ID: ' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                action: 'BEACON_GENERATED'
+            };
+            setCaptureLog(prev => [newLog, ...prev]);
+        }, 1500);
     };
 
     return (
@@ -83,7 +88,7 @@ export default function AttackerIntercept() {
                                     disabled={generating}
                                     className="w-full mt-8 bg-red-500 text-black font-black py-5 rounded-xl hover:bg-red-600 transition-all disabled:opacity-30 uppercase text-xs tracking-widest active:scale-95 shadow-[0_10px_30px_rgba(239,68,68,0.2)]"
                                 >
-                                    {generating ? 'PRIMING_SENSOR...' : 'DEPLOY INTERCEPTOR'}
+                                    {generating ? 'COMPILING_PAYLOAD...' : 'DOWNLOAD BAIT FILE'}
                                 </button>
                             </div>
                         </div>
@@ -91,43 +96,39 @@ export default function AttackerIntercept() {
                         <div className="lg:col-span-8 space-y-8">
                             <div className="glass-card-extreme cyber-border-extreme !p-0 min-h-[600px] flex flex-col overflow-hidden bg-black/40 relative">
                                 <div className="bg-red-500/10 p-5 border-b border-red-500/20 flex justify-between items-center z-10">
-                                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Offensive_Intel_Capture_Log</span>
+                                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest italic">Generated_Beacons_Log</span>
                                     <div className="flex gap-4 items-center">
-                                        <span className="text-[9px] text-gray-600">{captureLog.length} INTERCEPTIONS_LOGGED</span>
+                                        <span className="text-[9px] text-gray-600">{captureLog.length} FILES_ACTIVE</span>
                                         <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]"></div>
                                     </div>
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                                     {captureLog.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center opacity-10 py-32 grayscale">
-                                            <div className="text-[150px] mb-8 font-black">🤺</div>
-                                            <div className="text-[10px] font-black tracking-[1em] uppercase text-center">Awaiting intruder triggering sensors</div>
+                                            <div className="text-[150px] mb-8 font-black">📁</div>
+                                            <div className="text-[10px] font-black tracking-[1em] uppercase text-center">Ready to generate tracking files</div>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
                                             {captureLog.map((log, i) => (
                                                 <div key={i} className="glass-card-extreme p-8 border-red-500/20 bg-red-950/10 animate-in slide-in-from-right duration-500 group relative">
-                                                    <div className="absolute top-0 right-0 p-4 font-black text-[50px] text-red-500 opacity-5 -rotate-12 select-none pointer-events-none group-hover:opacity-10 transition-all uppercase">Exposed</div>
+
                                                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 items-center">
                                                         <div>
-                                                            <div className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Time_Log</div>
+                                                            <div className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Created_At</div>
                                                             <div className="text-sm font-bold text-white">{log.time}</div>
                                                         </div>
                                                         <div>
-                                                            <div className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Source_IP</div>
-                                                            <div className="text-sm font-bold text-white font-mono">{log.ip}</div>
+                                                            <div className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Status</div>
+                                                            <div className="text-sm font-bold text-white font-mono animate-pulse">{log.ip}</div>
                                                         </div>
                                                         <div className="hidden lg:block">
-                                                            <div className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Location_Trace</div>
-                                                            <div className="text-sm font-bold text-white">{log.location}</div>
+                                                            <div className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Tracking_ID</div>
+                                                            <div className="text-sm font-bold text-white">{log.device}</div>
                                                         </div>
                                                         <div>
-                                                            <button className="text-[10px] bg-red-500 text-black font-black px-4 py-2 rounded-lg hover:bg-white transition-all uppercase tracking-widest">Execute_Retaliation →</button>
+                                                            <button className="text-[10px] bg-red-500 text-black font-black px-4 py-2 rounded-lg hover:bg-white transition-all uppercase tracking-widest">Re-Download</button>
                                                         </div>
-                                                    </div>
-                                                    <div className="mt-6 pt-4 border-t border-red-500/10 flex items-center justify-between">
-                                                        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest italic">Fingerprint: <span className="text-gray-200">{log.device}</span></div>
-                                                        <div className="text-[10px] font-black text-red-500 uppercase animate-pulse">{log.action}</div>
                                                     </div>
                                                 </div>
                                             ))}
