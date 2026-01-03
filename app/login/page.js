@@ -11,27 +11,42 @@ export default function LoginPage() {
     const [error, setError] = useState(null);
     const [isSignUp, setIsSignUp] = useState(false);
     const [isResetMode, setIsResetMode] = useState(false);
-    const [isResetVerifyMode, setIsResetVerifyMode] = useState(false); // Mode for entering code
+    const [isResetVerifyMode, setIsResetVerifyMode] = useState(false);
     const [otp, setOtp] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [is2FAMode, setIs2FAMode] = useState(false);
+    const [twoFactorCode, setTwoFactorCode] = useState('');
     const { signIn, signUp, user, resetPassword, verifyOtp, updatePassword } = useAuth();
     const router = useRouter();
 
-    // Redirect when user is authenticated
+    // Redirect when user is authenticated AND 2FA is verified (or skipped for dev)
     useEffect(() => {
-        if (user) {
+        if (user && !is2FAMode) {
             router.push('/herramientas');
         }
-    }, [user, router]);
+    }, [user, is2FAMode, router]);
 
     const handleAuth = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+        if (is2FAMode) {
+            // Simulate 2FA verification
+            if (twoFactorCode === '123456') { // Master demo code
+                setIs2FAMode(false);
+                // useEffect will handle redirect
+            } else {
+                setError("Invalid 2FA code. Please check your authenticator app.");
+            }
+            setLoading(false);
+            return;
+        }
+
         let result;
 
         if (isResetVerifyMode) {
-            // Step 2: Verify OTP and Update Password
+            // ... (rest of reset logic)
             const { error: verifyError } = await verifyOtp(email, otp);
             if (verifyError) {
                 setError("Invalid or expired code. Please try again.");
@@ -46,7 +61,6 @@ export default function LoginPage() {
                 setError("Password updated successfully! You can now login.");
                 setIsResetVerifyMode(false);
                 setIsResetMode(false);
-                // Optionally clear fields
                 setOtp('');
                 setNewPassword('');
                 setPassword('');
@@ -56,13 +70,12 @@ export default function LoginPage() {
         }
 
         if (isResetMode) {
-            // Step 1: Send Reset Link
             const { error } = await resetPassword(email);
             if (error) {
                 setError(error.message);
             } else {
                 setError("Check your email for the code.");
-                setIsResetVerifyMode(true); // Move to verification step
+                setIsResetVerifyMode(true);
             }
             setLoading(false);
             return;
@@ -79,14 +92,15 @@ export default function LoginPage() {
             setLoading(false);
         } else {
             if (isSignUp) {
-                // Check if email confirmation is required (Supabase default)
                 if (result.data?.user && !result.data.session) {
                     setError("Account created! Please check your email to confirm.");
                     setLoading(false);
                 }
-                // If session exists, useEffect will handle redirect
+            } else {
+                // Successful Login -> Show 2FA
+                setIs2FAMode(true);
+                setLoading(false);
             }
-            // If sign in success, useEffect will handle redirect
         }
     };
 
@@ -112,7 +126,7 @@ export default function LoginPage() {
                 <div style={{ textAlign: "center", marginBottom: "30px" }}>
                     <h1 style={{ color: "#00ff88", fontSize: "2rem", fontWeight: "bold", marginBottom: "10px" }}>BYTEGUARD</h1>
                     <p style={{ color: "#888" }}>
-                        {isResetVerifyMode ? "Set New Password" : (isResetMode ? "Reset Password" : (isSignUp ? "Create Enterprise Account" : "Enterprise Access"))}
+                        {is2FAMode ? "Multi-Factor Authentication Required" : (isResetVerifyMode ? "Set New Password" : (isResetMode ? "Reset Password" : (isSignUp ? "Create Enterprise Account" : "Enterprise Access")))}
                     </p>
                 </div>
 
@@ -132,56 +146,44 @@ export default function LoginPage() {
                 )}
 
                 <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                    <div>
-                        <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                background: "#111",
-                                border: "1px solid #333",
-                                borderRadius: "8px",
-                                color: "#fff",
-                                outline: "none",
-                                transition: "border 0.2s"
-                            }}
-                            placeholder="agent@byteguard.security"
-                        />
-                    </div>
-                    {!isResetMode && !isResetVerifyMode && (
+                    {is2FAMode ? (
                         <div>
-                            <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>Password</label>
+                            <div style={{ padding: "15px", background: "rgba(0,255,136,0.05)", border: "1px dashed #00ff88", borderRadius: "8px", marginBottom: "20px" }}>
+                                <p style={{ fontSize: "0.8rem", color: "#00ff88", textAlign: "center", margin: 0 }}>
+                                    Entorno de Pruebas: Introduce <strong>123456</strong> para verificar.
+                                </p>
+                            </div>
+                            <label style={{ display: "block", marginBottom: "8px", color: "#00ff88", fontSize: "0.9rem", fontWeight: "bold" }}>VERIFICATION_CODE (2FA)</label>
                             <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                type="text"
+                                value={twoFactorCode}
+                                onChange={(e) => setTwoFactorCode(e.target.value)}
                                 required
                                 style={{
                                     width: "100%",
-                                    padding: "12px",
+                                    padding: "16px",
                                     background: "#111",
-                                    border: "1px solid #333",
+                                    border: "2px solid #00ff88",
                                     borderRadius: "8px",
                                     color: "#fff",
+                                    textAlign: "center",
+                                    fontSize: "1.5rem",
+                                    letterSpacing: "0.5em",
                                     outline: "none"
                                 }}
-                                placeholder="••••••••"
+                                placeholder="000000"
+                                maxLength={6}
+                                autoFocus
                             />
                         </div>
-                    )}
-
-                    {isResetVerifyMode && (
+                    ) : (
                         <>
                             <div>
-                                <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>Code from Email</label>
+                                <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>Email</label>
                                 <input
-                                    type="text"
-                                    value={otp}
-                                    onChange={(e) => setOtp(e.target.value)}
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
                                     style={{
                                         width: "100%",
@@ -190,30 +192,76 @@ export default function LoginPage() {
                                         border: "1px solid #333",
                                         borderRadius: "8px",
                                         color: "#fff",
-                                        outline: "none"
+                                        outline: "none",
+                                        transition: "border 0.2s"
                                     }}
-                                    placeholder="123456"
+                                    placeholder="agent@byteguard.security"
                                 />
                             </div>
-                            <div>
-                                <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>New Password</label>
-                                <input
-                                    type="password"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    required
-                                    style={{
-                                        width: "100%",
-                                        padding: "12px",
-                                        background: "#111",
-                                        border: "1px solid #333",
-                                        borderRadius: "8px",
-                                        color: "#fff",
-                                        outline: "none"
-                                    }}
-                                    placeholder="New Secure Password"
-                                />
-                            </div>
+                            {!isResetMode && !isResetVerifyMode && (
+                                <div>
+                                    <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>Password</label>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        style={{
+                                            width: "100%",
+                                            padding: "12px",
+                                            background: "#111",
+                                            border: "1px solid #333",
+                                            borderRadius: "8px",
+                                            color: "#fff",
+                                            outline: "none"
+                                        }}
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            )}
+
+                            {isResetVerifyMode && (
+                                <>
+                                    <div>
+                                        <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>Code from Email</label>
+                                        <input
+                                            type="text"
+                                            value={otp}
+                                            onChange={(e) => setOtp(e.target.value)}
+                                            required
+                                            style={{
+                                                width: "100%",
+                                                padding: "12px",
+                                                background: "#111",
+                                                border: "1px solid #333",
+                                                borderRadius: "8px",
+                                                color: "#fff",
+                                                outline: "none"
+                                            }}
+                                            placeholder="123456"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: "block", marginBottom: "8px", color: "#aaa", fontSize: "0.9rem" }}>New Password</label>
+                                        <input
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            required
+                                            style={{
+                                                width: "100%",
+                                                padding: "12px",
+                                                background: "#111",
+                                                border: "1px solid #333",
+                                                borderRadius: "8px",
+                                                color: "#fff",
+                                                outline: "none"
+                                            }}
+                                            placeholder="New Secure Password"
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
 
@@ -233,12 +281,20 @@ export default function LoginPage() {
                             marginTop: "10px"
                         }}
                     >
-                        {loading ? "Processing..." : (isResetVerifyMode ? "Update Password" : (isResetMode ? "Send Reset Link" : (isSignUp ? "Create Account" : "Access Console")))}
+                        {loading ? "Processing..." : (is2FAMode ? "VERIFY_IDENTITY" : (isResetVerifyMode ? "Update Password" : (isResetMode ? "Send Reset Link" : (isSignUp ? "Create Account" : "Access Console"))))}
                     </button>
                 </form>
 
                 <div style={{ marginTop: "20px", textAlign: "center", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {!isResetMode && !isResetVerifyMode && (
+                    {is2FAMode && (
+                        <button
+                            onClick={() => setIs2FAMode(false)}
+                            style={{ background: "none", border: "none", color: "#aaa", cursor: "pointer", textDecoration: "underline", fontSize: "0.9rem" }}
+                        >
+                            Cancel and Logout
+                        </button>
+                    )}
+                    {!isResetMode && !isResetVerifyMode && !is2FAMode && (
                         <button
                             type="button"
                             onClick={() => { setIsResetMode(true); setError(null); }}

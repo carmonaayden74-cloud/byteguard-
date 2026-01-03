@@ -29,6 +29,7 @@ export const metadata = {
 };
 
 import AIAssistant from "./components/AIAssistant";
+import PrivacyBanner from "./components/PrivacyBanner";
 import { AuthProvider } from "./context/AuthContext";
 import { DefenseProvider } from "./context/DefenseContext";
 
@@ -95,6 +96,28 @@ export default function RootLayout({ children }) {
               <a href="/wp-admin" style={{ display: 'none' }} aria-hidden="true">Admin Login</a>
               {children}
             </main>
+
+            <footer style={{
+              background: "#050505",
+              borderTop: "1px solid rgba(0,255,136,0.06)",
+              padding: "24px",
+              textAlign: "center",
+              fontSize: "12px",
+              color: "#666",
+              position: "relative",
+              zIndex: 100
+            }}>
+              <div style={{ marginBottom: 8 }}>
+                © {new Date().getFullYear()} BYTEGUARD RESEARCH. ALL RIGHTS RESERVED.
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", gap: 20 }}>
+                <Link href="/legal/privacy" style={footerLinkStyle}>Privacy Policy</Link>
+                <Link href="/legal/terms" style={footerLinkStyle}>Terms of Service</Link>
+                <Link href="/legal/disclaimer" style={{ ...footerLinkStyle, color: "#00ff88" }}>Security Disclaimer</Link>
+              </div>
+            </footer>
+
+            <PrivacyBanner />
             <AIAssistant />
           </DefenseProvider>
         </AuthProvider>
@@ -102,6 +125,12 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+const footerLinkStyle = {
+  color: "#666",
+  textDecoration: "none",
+  transition: "color 0.3s ease"
+};
 
 const linkStyle = {
   color: "#BFBFBF",

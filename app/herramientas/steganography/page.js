@@ -108,6 +108,11 @@ export default function Steganography() {
         } else {
             await decode();
         }
+        const endSteps = ['Optimizing Matrix...', 'Verifying Heap Cleanup...', 'SAN_COMPLETE'];
+        for (let i = 0; i < endSteps.length; i++) {
+            setStatus(endSteps[i]);
+            await new Promise(r => setTimeout(r, 400));
+        }
 
         setProcessing(false);
     };
@@ -219,13 +224,22 @@ export default function Steganography() {
 
                 <div className="max-w-6xl mx-auto">
                     <div className="mb-12 border-b border-blue-500/20 pb-8 flex justify-between items-end">
-                        <div>
-                            <h1 className="text-6xl font-black text-white tracking-tighter mb-4 animate-in slide-in-from-left duration-700">
-                                CRYPTO_<span className="text-blue-500">FORGE</span>
-                            </h1>
-                            <div className="flex items-center gap-3 text-gray-500 font-bold text-xs uppercase tracking-[0.4em]">
-                                <span className={`w-2 h-2 rounded-full ${processing ? 'bg-blue-500 animate-ping' : 'bg-[#00ff88]'}`}></span>
-                                {processing ? 'FORGE_SEQUENCE_ACTIVE' : 'STEGANOGRAPHY_ENGINE // READY'}
+                        <div className="flex items-center gap-4">
+                            <div>
+                                <h1 className="text-6xl font-black text-white tracking-tighter mb-4 animate-in slide-in-from-left duration-700">
+                                    CRYPTO_<span className="text-blue-500">FORGE</span>
+                                </h1>
+                                <div className="flex items-center gap-3 text-gray-500 font-bold text-xs uppercase tracking-[0.4em]">
+                                    <span className={`w-2 h-2 rounded-full ${processing ? 'bg-blue-500 animate-ping' : 'bg-[#00ff88]'}`}></span>
+                                    {processing ? 'FORGE_SEQUENCE_ACTIVE' : 'STEGANOGRAPHY_ENGINE // READY'}
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                                <div className="px-4 py-2 bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-full flex items-center gap-2 animate-in fade-in duration-1000">
+                                    <span className="text-[#00ff88] text-[9px] font-black uppercase tracking-widest">Client_Side_Only</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88] shadow-[0_0_10px_#00ff88]"></div>
+                                </div>
+                                <div className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Data never leaves browser memory</div>
                             </div>
                         </div>
 
