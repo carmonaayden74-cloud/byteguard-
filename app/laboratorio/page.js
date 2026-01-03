@@ -29,6 +29,10 @@ export default function Laboratorio() {
             <div className="w-10 h-10 bg-[#00ff88]/20 rounded-full border border-[#00ff88] flex items-center justify-center text-[#00ff88]">
               A
             </div>
+            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-[#00ff88]/10 rounded-full border border-[#00ff88]/30">
+              <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse"></span>
+              <span className="text-[10px] font-black text-[#00ff88] tracking-widest">OMEGA_ONLINE_v2</span>
+            </div>
           </div>
         </header>
 
