@@ -55,16 +55,7 @@ export default function EntropyAuditor() {
         };
     }, [password, calculateEntropy]);
 
-    useEffect(() => {
-        if (!analysis || !user || analysis.entropy < 20) return;
-        const timer = setTimeout(async () => {
-            await saveScan(user.id, 'Entropy Auditor', 'Password_Profile_Internal', {
-                entropy: analysis.entropy,
-                resistance: analysis.times.cluster
-            });
-        }, 3000);
-        return () => clearTimeout(timer);
-    }, [analysis, user]);
+    // Audit results are handled by useMemo 'analysis'
 
     return (
         <div className="min-h-screen bg-[#050505] text-[#e0e0e0] font-mono flex relative overflow-hidden">

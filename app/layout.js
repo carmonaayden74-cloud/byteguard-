@@ -50,6 +50,12 @@ export default function RootLayout({ children }) {
                     .catch(err => console.log('Service Worker registration failed:', err));
                 });
               }
+
+              // Prevent PWA auto-installation prompt
+              window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                console.log('PWA installation prompt prevented.');
+              });
             `,
           }}
         />

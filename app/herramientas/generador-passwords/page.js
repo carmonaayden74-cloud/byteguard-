@@ -40,7 +40,7 @@ export default function PasswordGenerator() {
 
     // Initial strength calculation based on lazy password
     const [strength, setStrength] = useState(() => {
-        const pool = 26 + 26 + 10 + 32; // basic pool for initial pass
+        const pool = 26 + 26 + 10 + 32;
         const entropy = Math.log2(Math.pow(pool, 16));
         return {
             score: Math.min(100, (entropy / 128) * 100),

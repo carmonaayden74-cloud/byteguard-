@@ -8,50 +8,56 @@ export function DefenseProvider({ children }) {
     const { user } = useAuth();
     const [notifications, setNotifications] = useState([]);
 
-    const logIncident = async (n) => {
-        if (!user) return;
-        try {
-            await fetch('/api/incidents', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: user.id,
-                    type: n.type,
-                    title: n.message,
-                    description: n.details,
-                    severity: n.type === 'ALERT' ? 'CRITICAL' : 'HIGH',
-                    metadata: { timestamp: new Date().toISOString() }
-                })
-            });
-        } catch (e) {
-            console.error("Failed to log incident:", e);
-        }
-    };
-
     const notify = (type, message, details) => {
         const id = Date.now();
         const severity = type === 'ALERT' ? 'CRITICAL' : 'HIGH';
-        const newNotification = { id, type, message, details, severity };
+        const newNotification = {
+            id,
+            type,
+            message,
+            details,
+            severity,
+            timestamp: new Date().toLocaleTimeString()
+        };
+
+        const logIncidentInternal = async (n) => {
+            if (!user) return;
+            try {
+                await fetch('/api/incidents', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: user.id,
+                        type: n.type,
+                        title: n.message,
+                        description: n.details,
+                        severity: n.severity,
+                        metadata: { timestamp: new Date().toISOString() }
+                    })
+                });
+            } catch (e) {
+                console.error("Failed to log incident:", e);
+            }
+        };
+
+        const triggerEscalationInternal = (n) => {
+            console.log(`[ENTERPRISE_ESC] Sending critical alert to security webhooks: ${n.message}`);
+        };
 
         setNotifications(prev => [newNotification, ...prev].slice(0, 5));
 
         // Log to backend for SOC persistence
-        logIncident(newNotification);
+        logIncidentInternal(newNotification);
 
         // Escalation Simulation (Enterprise Hook)
         if (severity === 'CRITICAL') {
-            triggerEscalation(newNotification);
+            triggerEscalationInternal(newNotification);
         }
 
-        // Auto-remove after 6 seconds (slightly longer for enterprise focus)
+        // Auto-remove after 6 seconds
         setTimeout(() => {
             setNotifications(prev => prev.filter(n => n.id !== id));
         }, 6000);
-    };
-
-    const triggerEscalation = (n) => {
-        console.log(`[ENTERPRISE_ESC] Sending critical alert to security webhooks: ${n.message}`);
-        // In a real enterprise env, this would hit a Slack/Teams webhook or PagerDuty
     };
 
     return (
