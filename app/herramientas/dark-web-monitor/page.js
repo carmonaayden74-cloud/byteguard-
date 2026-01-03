@@ -15,20 +15,19 @@ export default function DarkWebMonitor() {
     const checkLeaks = () => {
         if (!ident) return;
         setScanning(true);
-        setFindings([]);
-        notify('WARNING', 'BREACH_SCAN_INIT', `Scanning Darknet archives for ID: ${ident}`);
+        notify('INFO', 'BREACH_QUERY', `Redirecting to National Data Breach Database for: ${ident}`);
 
         setTimeout(() => {
-            const mockLeaks = [
-                { date: '2022-04', source: 'Canva Leak', severity: 'HIGH', data: 'Email, Password Hash, Username' },
-                { date: '2020-01', source: 'Zynga Database', severity: 'MEDIUM', data: 'Account ID, Email' },
-                { date: '2019-11', source: 'Adobe Systems', severity: 'CRITICAL', data: 'Full Name, Password Hint, Email' }
-            ];
+            const hibpUrl = `https://haveibeenpwned.com/account/${encodeURIComponent(ident)}`;
+            const dehashedUrl = `https://dehashed.com/search?query="${encodeURIComponent(ident)}"`;
 
-            setFindings(mockLeaks);
+            window.open(hibpUrl, '_blank');
+            // Optional: window.open(dehashedUrl, '_blank');
+
             setScanning(false);
-            notify('ALERT', 'BREACH_FOUND', `Identity match detected in 3 major historical leaks! Mitigation required.`);
-        }, 1800);
+            setFindings([{ date: new Date().toISOString().split('T')[0], source: 'External_Audit', severity: 'QUERY_SENT', data: 'Check output in new tab' }]);
+            notify('SUCCESS', 'GATEWAY_ACCESSED', `Connected to HIBP Database. Verify results in the new window.`);
+        }, 1000);
     };
 
     return (

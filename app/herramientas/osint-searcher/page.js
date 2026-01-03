@@ -15,22 +15,31 @@ export default function OSINTSearcher() {
     const performOSINT = () => {
         if (!query) return;
         setSearching(true);
-        setResults([]);
-        notify('INFO', 'OSINT_UPLINK', `Aggregating public records for: ${query}`);
+        notify('INFO', 'OSINT_LAUNCH', `Executing Deep Google Dorks for: ${query}`);
+
+        const dorks = [
+            `https://www.google.com/search?q=site:linkedin.com/in/ "${query}"`,
+            `https://www.google.com/search?q=site:instagram.com "${query}"`,
+            `https://www.google.com/search?q=site:twitter.com "${query}"`,
+            `https://www.google.com/search?q=filetype:pdf "${query}" confidential`,
+            `https://www.google.com/search?q=intext:"${query}"`
+        ];
+
+        // Launch logic
+        dorks.forEach((url, index) => {
+            setTimeout(() => {
+                window.open(url, '_blank');
+            }, index * 500);
+        });
 
         setTimeout(() => {
-            const mockRecords = [
-                { source: 'Social_Graph', type: 'LinkedIn', detail: 'Found profile matching "Security Analyst"', link: 'https://linkedin.com/...' },
-                { source: 'Domain_Whois', type: 'Registry', detail: 'Associated email: h****@gmail.com', link: '#' },
-                { source: 'Public_Records', type: 'Government', detail: 'Likely location: Florida, USA', link: '#' },
-                { source: 'Data_Leaks', type: 'Archive', detail: 'Presence in 2021 Adobe Breach', link: '#' },
-                { source: 'Github_Scan', type: 'Code', detail: 'Active contributor in 4 secure repos', link: 'https://github.com/...' }
-            ];
-
-            setResults(mockRecords);
             setSearching(false);
-            notify('SUCCESS', 'OSINT_COMPLETE', `Retrieved ${mockRecords.length} intelligence nodes for ${query}`);
-        }, 1500);
+            notify('SUCCESS', 'VORTEX_OPENED', `Launched ${dorks.length} tactical search vectors in new tabs.`);
+            setResults([
+                { source: 'Active_Tab_1', type: 'LinkedIn_Recon', detail: 'Searching professional graph...', link: dorks[0] },
+                { source: 'Active_Tab_2', type: 'Social_Media_Deep', detail: 'Searching social footprint...', link: dorks[1] }
+            ]);
+        }, 1000);
     };
 
     return (

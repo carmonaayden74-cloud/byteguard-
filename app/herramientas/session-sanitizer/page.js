@@ -75,7 +75,7 @@ export default function SessionSanitizer() {
                             </div>
 
                             <div className="glass-card-extreme p-8 border-white/5 opacity-80 font-bold uppercase text-[9px] text-gray-500 tracking-widest leading-relaxed mb-8">
-                                <p>Warning: This protocol redirects you to the "Force Logout" control panels of major identity providers. You must be logged in to execute the purge.</p>
+                                <p>Warning: This protocol redirects you to the &quot;Force Logout&quot; control panels of major identity providers. You must be logged in to execute the purge.</p>
                             </div>
 
                             <div className="grid grid-cols-1 gap-6">
@@ -130,8 +130,8 @@ export default function SessionSanitizer() {
                                 </div>
                                 <div className="flex-1 p-8 font-mono text-xs space-y-2 overflow-y-auto opacity-70">
                                     <div className="text-gray-500">System initialized. Awaiting manual trigger...</div>
-                                    <div className="text-[#00ff88]">> Direct Uplinks established.</div>
-                                    <div className="text-[#00ff88]">> Target: Global Account Safety.</div>
+                                    <div className="text-[#00ff88]">&gt; Direct Uplinks established.</div>
+                                    <div className="text-[#00ff88]">&gt; Target: Global Account Safety.</div>
                                     <div className="text-gray-400">Ready to execute forced termination protocol on selected providers.</div>
                                     <div className="mt-8 p-4 border border-red-500/30 bg-red-900/10 text-red-400 rounded">
                                         [CRITICAL NOTE]<br />
@@ -140,7 +140,9 @@ export default function SessionSanitizer() {
                                 </div>
                             </div>
                         </div>
-                    </main>
+                    </div>
                 </div>
-                );
+            </main>
+        </div>
+    );
 }

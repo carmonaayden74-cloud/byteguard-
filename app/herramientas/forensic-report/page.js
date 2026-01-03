@@ -27,12 +27,12 @@ export default function ForensicReport() {
 
     const generatePDF = () => {
         setGenerating(true);
-        notify('INFO', 'GENERATING_EVIDENCE', 'Aggregating logs, IP traces, and cryptographic signatures...');
+        notify('INFO', 'PREPARING_PRINT', 'Formatting forensic data for export. Please save as PDF in the dialog window.');
 
         setTimeout(() => {
             setGenerating(false);
-            notify('SUCCESS', 'REPORT_READY', `Forensic Dossier ${reportData.incidentId} is ready for submission to law enforcement.`);
-        }, 2500);
+            window.print();
+        }, 1000);
     };
 
     return (
