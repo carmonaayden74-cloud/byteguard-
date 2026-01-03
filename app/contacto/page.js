@@ -16,11 +16,11 @@ export default function Contacto() {
                         <div className="space-y-6">
                             <div>
                                 <div className="text-[10px] font-black text-[#00ff88] uppercase tracking-[0.3em] mb-2">Secure_Email</div>
-                                <div className="text-2xl font-bold text-white italic">ops@byteguard.research</div>
+                                <div className="text-2xl font-bold text-white italic">costaricabyteguard@gmail.com</div>
                             </div>
                             <div>
                                 <div className="text-[10px] font-black text-[#00ff88] uppercase tracking-[0.3em] mb-2">Encrypted_Signal</div>
-                                <div className="text-2xl font-bold text-white italic">+1 (555) BYTE-GUARD</div>
+                                <div className="text-2xl font-bold text-white italic">+506 89630962</div>
                             </div>
                         </div>
                     </div>
