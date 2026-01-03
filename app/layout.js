@@ -45,20 +45,28 @@ export default function RootLayout({ children }) {
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/pwabuilder-sw.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed:', err));
-                });
-              }
+                // NUCLEAR CACHE PROTOCOL: Force Unregister All Workers
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                      registration.unregister();
+                      console.log('Service Worker KILLED:', registration);
+                    }
+                    if(registrations.length > 0) {
+                       window.location.reload(); // Force reload if we killed something
+                    }
+                  });
+                }
+                
+                // Clear all caches
+                if ('caches' in window) {
+                   caches.keys().then(function(names) {
+                     for (let name of names) caches.delete(name);
+                   });
+                }
 
-              // Prevent PWA auto-installation prompt
-              window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                console.log('PWA installation prompt prevented.');
-              });
-            `,
+                console.log('OMEGA PROTOCOL: CACHE PURGED');
+              `,
           }}
         />
       </head>
