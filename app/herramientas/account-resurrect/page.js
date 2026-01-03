@@ -53,17 +53,29 @@ export default function AccountResurrect() {
         if (!email) return;
         setProcessing(true);
         setSteps([]);
-        notify('INFO', 'RESURRECTION_STARTED', `Initiating deep recovery protocol for ${platform} account: ${email}`);
+        notify('INFO', 'RESURRECTION_INITIATED', `Connecting to official ${platform} recovery gateway for: ${email}`);
+
+        // Real Recovery Links Logic
+        const realLinks = {
+            FACEBOOK: `https://www.facebook.com/hacked?email=${encodeURIComponent(email)}`,
+            INSTAGRAM: `https://www.instagram.com/hacked/`,
+            GOOGLE: `https://accounts.google.com/signin/recovery/?email=${encodeURIComponent(email)}`
+        };
 
         const config = platformConfig[platform];
-        for (let i = 0; i < config.guide.length; i++) {
-            await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
+
+        // Fast-track visual sequence before real redirect
+        for (let i = 0; i < 3; i++) {
+            await new Promise(r => setTimeout(r, 600)); // Faster 600ms steps
             setSteps(prev => [...prev, config.guide[i]]);
-            notify('SUCCESS', 'STEP_COMPLETE', `Phase ${i + 1} verified.`);
         }
 
         setProcessing(false);
-        notify('SUCCESS', 'RESTORATION_COMPLETE', `Final recovery package generated for ${email}. Follow instructions to regain access.`);
+        notify('SUCCESS', 'GATEWAY_OPEN', `Redirecting to OFFICIAL ${platform} RECOVERY PORTAL...`);
+
+        setTimeout(() => {
+            window.open(realLinks[platform], '_blank');
+        }, 1500);
     };
 
     return (
@@ -153,10 +165,15 @@ export default function AccountResurrect() {
                                     )}
                                     {!processing && steps.length > 0 && (
                                         <div className="mt-8 p-10 bg-[#00ff88]/10 rounded-3xl border-2 border-[#00ff88]/30 text-center animate-in zoom-in duration-500">
-                                            <div className="text-6xl mb-6">🔱</div>
-                                            <h4 className="text-2xl font-black text-white mb-2 uppercase">RESTORATION_SYNC_COMPLETE</h4>
-                                            <p className="text-sm text-gray-500 mb-8 italic">Download the verification bypass packet and follow the original owner authentication link.</p>
-                                            <button className="bg-[#00ff88] text-black font-black px-12 py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all uppercase text-xs tracking-widest">DOWNLOAD_RECOVERY_KEY</button>
+                                            <div className="text-6xl mb-6">🔗</div>
+                                            <h4 className="text-2xl font-black text-white mb-2 uppercase">OFFICIAL_GATEWAY_OPEN</h4>
+                                            <p className="text-sm text-gray-500 mb-8 italic">Connection established with {platform} Security Center. Proceed there to finalize access recovery.</p>
+                                            <button
+                                                onClick={() => startResurrection()}
+                                                className="bg-[#00ff88] text-black font-black px-12 py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] transition-all uppercase text-xs tracking-widest"
+                                            >
+                                                RETRY_CONNECTION
+                                            </button>
                                         </div>
                                     )}
                                 </div>
